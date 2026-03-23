@@ -1,0 +1,71 @@
+@page "/members"
+@rendermode InteractiveServer
+@using ProjectManager.Models
+@using ProjectManager.Services
+@inject IMemberService MemberService
+@inject NavigationManager NavManager
+
+<PageTitle>Membres</PageTitle>
+
+<h1>Gestion des Membres</h1>
+
+<button class="btn btn-primary mb-3" @onclick="GoToAdd">
+    + Nouveau Membre
+</button>
+
+@if (_isLoading)
+{
+    <p><em>Chargement...</em></p>
+}
+else if (_members.Count == 0)
+{
+    <p>Aucun membre enregistré.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nom complet</th>
+                <th>Email</th>
+                <th>Rôle</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var member in _members)
+            {
+                <tr>
+                    <td>@member.FullName</td>
+                    <td>@member.Email</td>
+                    <td>@(member.Role ?? "—")</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger"
+                                @onclick="() => Delete(member.Id)">
+                            Supprimer
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Member> _members = new();
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _members = await MemberService.GetAllAsync();
+        _isLoading = false;
+    }
+
+    private void GoToAdd() => NavManager.NavigateTo("/members/add");
+
+    private async Task Delete(int id)
+    {
+        await MemberService.DeleteAsync(id);
+        _members = await MemberService.GetAllAsync();
+    }
+}

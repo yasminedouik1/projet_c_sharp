@@ -46,8 +46,24 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xIb21lLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/GHADA/Desktop/Projet c\#/projet_c_sharp/Components/Pages/Members/MemberAdd.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xNZW1iZXJzXE1lbWJlckFkZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/GHADA/Desktop/Projet c\#/projet_c_sharp/Components/Pages/Members/MemberList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xNZW1iZXJzXE1lbWJlckxpc3QucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/GHADA/Desktop/Projet c\#/projet_c_sharp/Components/Pages/NotFound.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xOb3RGb3VuZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/GHADA/Desktop/Projet c\#/projet_c_sharp/Components/Pages/Tasks/TaskAdd.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xUYXNrc1xUYXNrQWRkLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/GHADA/Desktop/Projet c\#/projet_c_sharp/Components/Pages/Tasks/TaskList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xUYXNrc1xUYXNrTGlzdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/GHADA/Desktop/Projet c\#/projet_c_sharp/Components/Pages/Weather.razor]
