@@ -1,0 +1,83 @@
+@page "/projects/add"
+@rendermode InteractiveServer
+@using ProjectManager.Models
+@using ProjectManager.Services
+@inject IProjectService ProjectService
+@inject NavigationManager NavManager
+
+<PageTitle>Nouveau Projet</PageTitle>
+
+<h1>Nouveau Projet</h1>
+
+<div class="card p-4" style="max-width: 600px;">
+    <div class="mb-3">
+        <label class="form-label">Nom du projet</label>
+        <input class="form-control" @bind="_project.Name" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" @bind="_project.Description"></textarea>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Date de début</label>
+        <input type="date" class="form-control" @bind="_project.StartDate" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Date limite</label>
+        <input type="date" class="form-control" @bind="_project.DueDate" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Statut</label>
+        <select class="form-select" @bind="_project.Status">
+            @foreach (var status in Enum.GetValues<ProjectStatus>())
+            {
+                <option value="@status">@status</option>
+            }
+        </select>
+    </div>
+
+    @if (_errorMessage != null)
+    {
+        <div class="alert alert-danger">@_errorMessage</div>
+    }
+
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary" @onclick="Save">Enregistrer</button>
+        <button class="btn btn-secondary" @onclick="Cancel">Annuler</button>
+    </div>
+</div>
+
+@code {
+    private Project _project = new()
+    {
+        StartDate = DateTime.Now,
+        DueDate = DateTime.Now.AddDays(30)
+    };
+
+    private string? _errorMessage;
+
+    private async Task Save()
+    {
+        // Validation simple
+        if (string.IsNullOrWhiteSpace(_project.Name))
+        {
+            _errorMessage = "Le nom du projet est obligatoire.";
+            return;
+        }
+
+        if (_project.DueDate < _project.StartDate)
+        {
+            _errorMessage = "La date limite doit être après la date de début.";
+            return;
+        }
+
+        await ProjectService.AddAsync(_project);
+        NavManager.NavigateTo("/projects");
+    }
+
+    private void Cancel() => NavManager.NavigateTo("/projects");
+}
