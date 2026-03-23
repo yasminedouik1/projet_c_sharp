@@ -1,0 +1,167 @@
+@page "/dashboard"
+@rendermode InteractiveServer
+@using ProjectManager.Models
+@using ProjectManager.Services
+@inject IProjectService ProjectService
+@inject IMemberService MemberService
+@inject IAnalyticsService AnalyticsService
+
+<PageTitle>Tableau de bord</PageTitle>
+
+<h1>Tableau de bord</h1>
+
+@if (_isLoading)
+{
+    <p><em>Chargement des indicateurs...</em></p>
+}
+else
+{
+    <!-- Indicateurs globaux -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center p-3">
+                <h6 class="text-muted">Projets actifs</h6>
+                <h2>@_activeProjects</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center p-3">
+                <h6 class="text-muted">Total membres</h6>
+                <h2>@_totalMembers</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center p-3">
+                <h6 class="text-muted">Tâches en retard</h6>
+                <h2 class="text-danger">@_totalOverdue</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center p-3">
+                <h6 class="text-muted">Tâches terminées</h6>
+                <h2 class="text-success">@_totalCompleted</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- Widget Dev A : santé des projets -->
+    <h4>Santé des projets</h4>
+    <div class="row mb-4">
+        @foreach (var item in _projectScores)
+        {
+            <div class="col-md-4 mb-3">
+                <div class="card p-3">
+                    <h6>@item.ProjectName</h6>
+                    <div class="progress mb-2" style="height: 20px;">
+                        <div class="progress-bar @GetHealthColor(item.Score)"
+                             style="width: @item.Score%">
+                            @item.Score%
+                        </div>
+                    </div>
+                    <span class="badge @GetHealthColor(item.Score)">
+                        @GetHealthLabel(item.Score)
+                    </span>
+                    <small class="text-muted mt-1">
+                        @item.Completed tâches terminées ·
+                        @item.Overdue en retard
+                    </small>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Widget Dev B : sera ajouté ici par Dev B -->
+    @* PLACEHOLDER_MEMBER_STATS *@
+}
+
+@code {
+    private bool _isLoading = true;
+
+    private int _activeProjects;
+    private int _totalMembers;
+    private int _totalOverdue;
+    private int _totalCompleted;
+
+    private List<ProjectScoreViewModel> _projectScores = new();
+
+    // Dev B ajoutera _memberStats ici
+    protected List<MemberStatViewModel> _memberStats = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var projects = await ProjectService.GetAllAsync();
+        var members  = await MemberService.GetAllAsync();
+
+        _activeProjects = projects.Count(p => p.Status == ProjectStatus.Active);
+        _totalMembers   = members.Count;
+        _totalCompleted = projects.Sum(p =>
+            p.Tasks.Count(t => t.Status == Models.TaskStatus.Done));
+        _totalOverdue   = projects.Sum(p =>
+            p.Tasks.Count(t => t.DueDate < DateTime.Now &&
+                              t.Status != Models.TaskStatus.Done));
+
+        // Scores projets — Dev A
+        foreach (var project in projects)
+        {
+            var score     = await AnalyticsService.GetHealthScoreAsync(project.Id);
+            var completed = await AnalyticsService.GetCompletedTasksCountAsync(project.Id);
+            var overdue   = await AnalyticsService.GetOverdueTasksCountAsync(project.Id);
+
+            _projectScores.Add(new ProjectScoreViewModel
+            {
+                ProjectName = project.Name,
+                Score       = score,
+                Completed   = completed,
+                Overdue     = overdue
+            });
+        }
+
+        // Stats membres — sera complété par Dev B
+        await LoadMemberStatsAsync(members);
+
+        _isLoading = false;
+    }
+
+    // Dev B remplacera cette méthode
+    protected virtual async Task LoadMemberStatsAsync(List<Member> members)
+    {
+        await Task.CompletedTask;
+    }
+
+    private string GetHealthColor(double score) => score switch
+    {
+        > 75 => "bg-success",
+        > 40 => "bg-warning",
+        _    => "bg-danger"
+    };
+
+    private string GetHealthLabel(double score) => score switch
+    {
+        > 75 => "Sain",
+        > 40 => "Risqué",
+        _    => "Critique"
+    };
+
+    // ViewModels
+    protected class ProjectScoreViewModel
+    {
+        public string ProjectName { get; set; } = "";
+        public double Score       { get; set; }
+        public int    Completed   { get; set; }
+        public int    Overdue     { get; set; }
+    }
+
+    protected class MemberStatViewModel
+    {
+        public string FullName       { get; set; } = "";
+        public double CompletionRate { get; set; }
+        public int    Workload       { get; set; }
+        public int    OverdueCount   { get; set; }
+    }
+
+    private string GetMemberBadge(double rate, int overdue) =>
+        overdue > 2 ? "bg-danger" : rate >= 70 ? "bg-success" : "bg-warning";
+
+    private string GetMemberLabel(double rate, int overdue) =>
+        overdue > 2 ? "En difficulté" : rate >= 70 ? "Performant" : "À surveiller";
+}

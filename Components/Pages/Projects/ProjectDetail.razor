@@ -42,6 +42,10 @@ else
     </div>
 
     <h4>Tâches (@_project.Tasks.Count)</h4>
+    <button class="btn btn-sm btn-primary mb-2" @onclick="GoToTasks">
+        Gérer les tâches
+    </button>
+
     @if (_project.Tasks.Count == 0)
     {
         <p>Aucune tâche pour ce projet.</p>
@@ -59,7 +63,11 @@ else
         </ul>
     }
 
-    <h4>Membres (@_project.Members.Count)</h4>
+    <h4 class="mt-3">Membres (@_project.Members.Count)</h4>
+    <button class="btn btn-sm btn-primary mb-2" @onclick="GoToMembers">
+        Gérer les membres
+    </button>
+
     @if (_project.Members.Count == 0)
     {
         <p>Aucun membre affecté.</p>
@@ -74,7 +82,7 @@ else
         </ul>
     }
 
-    <button class="btn btn-secondary" @onclick="GoBack">Retour</button>
+    <button class="btn btn-secondary mt-3" @onclick="GoBack">Retour</button>
 }
 
 @code {
@@ -89,13 +97,16 @@ else
         _isLoading = false;
     }
 
-    private void GoBack() => NavManager.NavigateTo("/projects");
+    // Méthodes de navigation séparées — évite le problème du $ dans les attributs
+    private void GoToTasks()   => NavManager.NavigateTo("/tasks/" + Id);
+    private void GoToMembers() => NavManager.NavigateTo("/projects/" + Id + "/members");
+    private void GoBack()      => NavManager.NavigateTo("/projects");
 
     private string GetTaskBadge(Models.TaskStatus status) => status switch
     {
         Models.TaskStatus.Done       => "bg-success",
         Models.TaskStatus.InProgress => "bg-warning",
         Models.TaskStatus.Todo       => "bg-secondary",
-        _ => "bg-secondary"
+        _                            => "bg-secondary"
     };
 }
