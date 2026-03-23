@@ -200,3 +200,4 @@ C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\refint\Project
 C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\ProjectManager.pdb
 C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\ProjectManager.genruntimeconfig.cache
 C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\ref\ProjectManager.dll
+C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\ProjectManager.sourcelink.json
