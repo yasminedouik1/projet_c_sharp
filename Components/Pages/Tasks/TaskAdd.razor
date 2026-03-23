@@ -1,0 +1,87 @@
+@page "/tasks/{ProjectId:int}/add"
+@rendermode InteractiveServer
+@using ProjectManager.Models
+@using ProjectManager.Services
+@inject ITaskService TaskService
+@inject IMemberService MemberService
+@inject NavigationManager NavManager
+
+<PageTitle>Nouvelle Tâche</PageTitle>
+
+<h1>Nouvelle Tâche</h1>
+
+<div class="card p-4" style="max-width: 600px;">
+    <div class="mb-3">
+        <label class="form-label">Titre</label>
+        <input class="form-control" @bind="_task.Title" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" @bind="_task.Description"></textarea>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Date limite</label>
+        <input type="date" class="form-control" @bind="_task.DueDate" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Statut</label>
+        <select class="form-select" @bind="_task.Status">
+            @foreach (var status in Enum.GetValues<Models.TaskStatus>())
+            {
+                <option value="@status">@status</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Assigner à</label>
+        <select class="form-select" @bind="_task.AssignedMemberId">
+            <option value="">-- Non assigné --</option>
+            @foreach (var member in _members)
+            {
+                <option value="@member.Id">@member.FullName</option>
+            }
+        </select>
+    </div>
+
+    @if (_errorMessage != null)
+    {
+        <div class="alert alert-danger">@_errorMessage</div>
+    }
+
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary" @onclick="Save">Enregistrer</button>
+        <button class="btn btn-secondary" @onclick="Cancel">Annuler</button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int ProjectId { get; set; }
+
+    private ProjectTask _task = new() { DueDate = DateTime.Now.AddDays(7) };
+    private List<Member> _members = new();
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _members = await MemberService.GetAllAsync();
+        _task.ProjectId = ProjectId;
+    }
+
+    private async Task Save()
+    {
+        if (string.IsNullOrWhiteSpace(_task.Title))
+        {
+            _errorMessage = "Le titre est obligatoire.";
+            return;
+        }
+
+        await TaskService.AddAsync(_task);
+        NavManager.NavigateTo($"/tasks/{ProjectId}");
+    }
+
+    private void Cancel() => NavManager.NavigateTo($"/tasks/{ProjectId}");
+}

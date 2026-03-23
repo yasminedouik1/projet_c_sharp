@@ -1,0 +1,63 @@
+@page "/members/add"
+@rendermode InteractiveServer
+@using ProjectManager.Models
+@using ProjectManager.Services
+@inject IMemberService MemberService
+@inject NavigationManager NavManager
+
+<PageTitle>Nouveau Membre</PageTitle>
+
+<h1>Nouveau Membre</h1>
+
+<div class="card p-4" style="max-width: 500px;">
+    <div class="mb-3">
+        <label class="form-label">Nom complet</label>
+        <input class="form-control" @bind="_member.FullName" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-control" @bind="_member.Email" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Rôle</label>
+        <input class="form-control" @bind="_member.Role" 
+               placeholder="ex: Développeur, Chef de projet..." />
+    </div>
+
+    @if (_errorMessage != null)
+    {
+        <div class="alert alert-danger">@_errorMessage</div>
+    }
+
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary" @onclick="Save">Enregistrer</button>
+        <button class="btn btn-secondary" @onclick="Cancel">Annuler</button>
+    </div>
+</div>
+
+@code {
+    private Member _member = new();
+    private string? _errorMessage;
+
+    private async Task Save()
+    {
+        if (string.IsNullOrWhiteSpace(_member.FullName))
+        {
+            _errorMessage = "Le nom est obligatoire.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_member.Email))
+        {
+            _errorMessage = "L'email est obligatoire.";
+            return;
+        }
+
+        await MemberService.AddAsync(_member);
+        NavManager.NavigateTo("/members");
+    }
+
+    private void Cancel() => NavManager.NavigateTo("/members");
+}

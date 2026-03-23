@@ -1,0 +1,100 @@
+@page "/tasks/{ProjectId:int}"
+@rendermode InteractiveServer
+@using ProjectManager.Models
+@using ProjectManager.Services
+@inject ITaskService TaskService
+@inject IMemberService MemberService
+@inject NavigationManager NavManager
+
+<PageTitle>Tâches</PageTitle>
+
+<h1>Tâches du projet</h1>
+
+<button class="btn btn-primary mb-3" @onclick="GoToAdd">
+    + Nouvelle Tâche
+</button>
+
+@if (_isLoading)
+{
+    <p><em>Chargement...</em></p>
+}
+else if (_tasks.Count == 0)
+{
+    <p>Aucune tâche pour ce projet.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Titre</th>
+                <th>Date limite</th>
+                <th>Statut</th>
+                <th>Assigné à</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var task in _tasks)
+            {
+                <tr class="@(IsOverdue(task) ? "table-danger" : "")">
+                    <td>@task.Title</td>
+                    <td>@task.DueDate.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        <span class="badge @GetStatusBadge(task.Status)">
+                            @task.Status
+                        </span>
+                    </td>
+                    <td>@(task.AssignedMember?.FullName ?? "Non assigné")</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning"
+                                @onclick="() => GoToEdit(task.Id)">
+                            Modifier
+                        </button>
+                        <button class="btn btn-sm btn-danger"
+                                @onclick="() => Delete(task.Id)">
+                            Supprimer
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<button class="btn btn-secondary" @onclick="GoBack">Retour au projet</button>
+
+@code {
+    [Parameter] public int ProjectId { get; set; }
+
+    private List<ProjectTask> _tasks = new();
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _tasks = await TaskService.GetAllByProjectAsync(ProjectId);
+        _isLoading = false;
+    }
+
+    // Détection retard — ligne rouge automatiquement
+    private bool IsOverdue(ProjectTask task) =>
+        task.DueDate < DateTime.Now && task.Status != Models.TaskStatus.Done;
+
+    private void GoToAdd() => NavManager.NavigateTo($"/tasks/{ProjectId}/add");
+    private void GoToEdit(int id) => NavManager.NavigateTo($"/tasks/edit/{id}");
+    private void GoBack() => NavManager.NavigateTo($"/projects/{ProjectId}");
+
+    private async Task Delete(int id)
+    {
+        await TaskService.DeleteAsync(id);
+        _tasks = await TaskService.GetAllByProjectAsync(ProjectId);
+    }
+
+    private string GetStatusBadge(Models.TaskStatus status) => status switch
+    {
+        Models.TaskStatus.Done       => "bg-success",
+        Models.TaskStatus.InProgress => "bg-warning",
+        Models.TaskStatus.Todo       => "bg-secondary",
+        _ => "bg-secondary"
+    };
+}
