@@ -1,0 +1,75 @@
+@page "/projects/{ProjectId:int}/members"
+@rendermode InteractiveServer
+@using ProjectManager.Models
+@using ProjectManager.Services
+@inject IMemberService MemberService
+@inject NavigationManager NavManager
+
+<PageTitle>Membres du projet</PageTitle>
+
+<h1>Affecter des membres</h1>
+
+<h4>Membres déjà dans le projet</h4>
+@if (_projectMembers.Count == 0)
+{
+    <p>Aucun membre affecté.</p>
+}
+else
+{
+    <ul class="list-group mb-3">
+        @foreach (var m in _projectMembers)
+        {
+            <li class="list-group-item">@m.FullName — @(m.Role ?? "—")</li>
+        }
+    </ul>
+}
+
+<h4>Ajouter un membre</h4>
+<div class="d-flex gap-2 mb-3">
+    <select class="form-select" @bind="_selectedMemberId">
+        <option value="0">-- Choisir un membre --</option>
+        @foreach (var m in _allMembers)
+        {
+            <option value="@m.Id">@m.FullName</option>
+        }
+    </select>
+    <button class="btn btn-primary" @onclick="AddMember">Affecter</button>
+</div>
+
+@if (_message != null)
+{
+    <div class="alert alert-info">@_message</div>
+}
+
+<button class="btn btn-secondary" @onclick="GoBack">
+    Retour
+</button>
+
+@code {
+    [Parameter] public int ProjectId { get; set; }
+    private void GoBack() => NavManager.NavigateTo("/projects/" + ProjectId);
+    private List<Member> _allMembers = new();
+    private List<Member> _projectMembers = new();
+    private int _selectedMemberId = 0;
+    private string? _message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _allMembers = await MemberService.GetAllAsync();
+        _projectMembers = await MemberService.GetByProjectAsync(ProjectId);
+    }
+
+    private async Task AddMember()
+    {
+        if (_selectedMemberId == 0)
+        {
+            _message = "Veuillez choisir un membre.";
+            return;
+        }
+
+        await MemberService.AddToProjectAsync(_selectedMemberId, ProjectId);
+        _projectMembers = await MemberService.GetByProjectAsync(ProjectId);
+        _message = "Membre ajouté avec succès.";
+        _selectedMemberId = 0;
+    }
+}
