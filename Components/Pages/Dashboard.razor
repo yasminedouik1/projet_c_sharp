@@ -70,8 +70,46 @@ else
         }
     </div>
 
-    <!-- Widget Dev B : sera ajouté ici par Dev B -->
-    @* PLACEHOLDER_MEMBER_STATS *@
+<!-- Widget Dev B : performance des membres -->
+    <h4>Performance des membres</h4>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Membre</th>
+                <th>Taux de complétion</th>
+                <th>Charge de travail</th>
+                <th>Tâches en retard</th>
+                <th>Statut</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var m in _memberStats)
+            {
+                <tr>
+                    <td>@m.FullName</td>
+                    <td>
+                        <div class="progress" style="height:16px;">
+                            <div class="progress-bar bg-success"
+                                 style="width:@m.CompletionRate%">
+                                @m.CompletionRate%
+                            </div>
+                        </div>
+                    </td>
+                    <td>@m.Workload tâche(s) active(s)</td>
+                    <td>
+                        <span class="@(m.OverdueCount > 0 ? "text-danger fw-bold" : "")">
+                            @m.OverdueCount
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge @GetMemberBadge(m.CompletionRate, m.OverdueCount)">
+                            @GetMemberLabel(m.CompletionRate, m.OverdueCount)
+                        </span>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 }
 
 @code {
@@ -123,10 +161,23 @@ else
     }
 
     // Dev B remplacera cette méthode
-    protected virtual async Task LoadMemberStatsAsync(List<Member> members)
+protected  async Task LoadMemberStatsAsync(List<Member> members)
+{
+    foreach (var member in members)
     {
-        await Task.CompletedTask;
+        var rate     = await AnalyticsService.GetMemberCompletionRateAsync(member.Id);
+        var workload = await AnalyticsService.GetMemberWorkloadAsync(member.Id);
+        var overdue  = await AnalyticsService.GetMemberOverdueCountAsync(member.Id);
+
+        _memberStats.Add(new MemberStatViewModel
+        {
+            FullName       = member.FullName,
+            CompletionRate = rate,
+            Workload       = workload,
+            OverdueCount   = overdue
+        });
     }
+}
 
     private string GetHealthColor(double score) => score switch
     {
