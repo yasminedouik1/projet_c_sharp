@@ -1,0 +1,97 @@
+@page "/projects"
+@rendermode InteractiveServer
+@using ProjectManager.Models
+@using ProjectManager.Services
+@inject IProjectService ProjectService
+@inject NavigationManager NavManager
+
+<PageTitle>Projets</PageTitle>
+
+<h1>Gestion des Projets</h1>
+
+<button class="btn btn-primary mb-3" @onclick="GoToAdd">
+    + Nouveau Projet
+</button>
+
+@if (_isLoading)
+{
+    <p><em>Chargement...</em></p>
+}
+else if (_projects.Count == 0)
+{
+    <p>Aucun projet trouvé.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Date limite</th>
+                <th>Statut</th>
+                <th>Tâches</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var project in _projects)
+            {
+                <tr>
+                    <td>@project.Name</td>
+                    <td>@project.DueDate.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        <span class="badge @GetStatusBadge(project.Status)">
+                            @project.Status
+                        </span>
+                    </td>
+                    <td>@project.Tasks.Count</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" 
+                                @onclick="() => GoToDetail(project.Id)">
+                            Détail
+                        </button>
+                        <button class="btn btn-sm btn-warning" 
+                                @onclick="() => GoToEdit(project.Id)">
+                            Modifier
+                        </button>
+                        <button class="btn btn-sm btn-danger" 
+                                @onclick="() => Delete(project.Id)">
+                            Supprimer
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Project> _projects = new();
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _projects = await ProjectService.GetAllAsync();
+        _isLoading = false;
+    }
+
+    private void GoToAdd() => NavManager.NavigateTo("/projects/add");
+    private void GoToDetail(int id) => NavManager.NavigateTo($"/projects/{id}");
+    private void GoToEdit(int id) => NavManager.NavigateTo($"/projects/edit/{id}");
+
+    private async Task Delete(int id)
+    {
+        await ProjectService.DeleteAsync(id);
+        _projects = await ProjectService.GetAllAsync();
+    }
+
+    // Couleur du badge selon le statut — comme les logs colorés du TP3
+    private string GetStatusBadge(ProjectStatus status) => status switch
+    {
+        ProjectStatus.Active    => "bg-success",
+        ProjectStatus.Completed => "bg-primary",
+        ProjectStatus.OnHold    => "bg-warning",
+        ProjectStatus.Cancelled => "bg-danger",
+        _ => "bg-secondary"
+    };
+}

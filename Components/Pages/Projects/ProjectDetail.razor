@@ -1,0 +1,101 @@
+@page "/projects/{Id:int}"
+@rendermode InteractiveServer
+@using ProjectManager.Models
+@using ProjectManager.Services
+@inject IProjectService ProjectService
+@inject NavigationManager NavManager
+
+<PageTitle>Détail Projet</PageTitle>
+
+@if (_isLoading)
+{
+    <p><em>Chargement...</em></p>
+}
+else if (_project == null)
+{
+    <p class="text-danger">Projet introuvable.</p>
+}
+else
+{
+    <h1>@_project.Name</h1>
+    <p class="text-muted">@_project.Description</p>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center p-3">
+                <h5>Début</h5>
+                <p>@_project.StartDate.ToString("dd/MM/yyyy")</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center p-3">
+                <h5>Date limite</h5>
+                <p>@_project.DueDate.ToString("dd/MM/yyyy")</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center p-3">
+                <h5>Statut</h5>
+                <p>@_project.Status</p>
+            </div>
+        </div>
+    </div>
+
+    <h4>Tâches (@_project.Tasks.Count)</h4>
+    @if (_project.Tasks.Count == 0)
+    {
+        <p>Aucune tâche pour ce projet.</p>
+    }
+    else
+    {
+        <ul class="list-group mb-3">
+            @foreach (var task in _project.Tasks)
+            {
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>@task.Title</span>
+                    <span class="badge @GetTaskBadge(task.Status)">@task.Status</span>
+                </li>
+            }
+        </ul>
+    }
+
+    <h4>Membres (@_project.Members.Count)</h4>
+    @if (_project.Members.Count == 0)
+    {
+        <p>Aucun membre affecté.</p>
+    }
+    else
+    {
+        <ul class="list-group mb-3">
+            @foreach (var pm in _project.Members)
+            {
+                <li class="list-group-item">@pm.Member?.FullName</li>
+            }
+        </ul>
+    }
+
+    <button class="btn btn-secondary" @onclick="GoBack">Retour</button>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private Project? _project;
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _project = await ProjectService.GetByIdAsync(Id);
+        _isLoading = false;
+    }
+
+    private void GoBack() => NavManager.NavigateTo("/projects");
+
+    private string GetTaskBadge(Models.TaskStatus status) => status switch
+    {
+        Models.TaskStatus.Done       => "bg-success",
+        Models.TaskStatus.InProgress => "bg-warning",
+        Models.TaskStatus.Todo       => "bg-secondary",
+        _ => "bg-secondary"
+    };
+}
