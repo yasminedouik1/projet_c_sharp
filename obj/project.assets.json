@@ -2465,19 +2465,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\yasmi\\.nuget\\packages\\": {}
+    "C:\\Users\\GHADA\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\yasmi\\Desktop\\projet c#\\ProjectManager\\ProjectManager.csproj",
+      "projectUniqueName": "C:\\Users\\GHADA\\Desktop\\Projet c#\\projet_c_sharp\\ProjectManager.csproj",
       "projectName": "ProjectManager",
-      "projectPath": "C:\\Users\\yasmi\\Desktop\\projet c#\\ProjectManager\\ProjectManager.csproj",
-      "packagesPath": "C:\\Users\\yasmi\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\yasmi\\Desktop\\projet c#\\ProjectManager\\obj\\",
+      "projectPath": "C:\\Users\\GHADA\\Desktop\\Projet c#\\projet_c_sharp\\ProjectManager.csproj",
+      "packagesPath": "C:\\Users\\GHADA\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\GHADA\\Desktop\\Projet c#\\projet_c_sharp\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\yasmi\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\GHADA\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0"
