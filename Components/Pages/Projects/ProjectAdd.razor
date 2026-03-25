@@ -1,7 +1,10 @@
 @page "/projects/add"
 @rendermode InteractiveServer
+
 @using ProjectManager.Models
 @using ProjectManager.Services
+@using System.ComponentModel.DataAnnotations
+
 @inject IProjectService ProjectService
 @inject NavigationManager NavManager
 
@@ -9,47 +12,50 @@
 
 <h1>Nouveau Projet</h1>
 
-<div class="card p-4" style="max-width: 600px;">
-    <div class="mb-3">
-        <label class="form-label">Nom du projet</label>
-        <input class="form-control" @bind="_project.Name" />
-    </div>
+<EditForm Model="_project" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
 
-    <div class="mb-3">
-        <label class="form-label">Description</label>
-        <textarea class="form-control" @bind="_project.Description"></textarea>
-    </div>
+    <div class="card p-4" style="max-width: 650px;">
+        
+        <div class="mb-3">
+            <label class="form-label">Nom du projet *</label>
+            <InputText class="form-control" @bind-Value="_project.Name" />
+            <ValidationMessage For="() => _project.Name" />
+        </div>
 
-    <div class="mb-3">
-        <label class="form-label">Date de début</label>
-        <input type="date" class="form-control" @bind="_project.StartDate" />
-    </div>
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <InputTextArea class="form-control" @bind-Value="_project.Description" rows="3" />
+        </div>
 
-    <div class="mb-3">
-        <label class="form-label">Date limite</label>
-        <input type="date" class="form-control" @bind="_project.DueDate" />
-    </div>
+        <div class="mb-3">
+            <label class="form-label">Date de début</label>
+            <InputDate class="form-control" @bind-Value="_project.StartDate" />
+        </div>
 
-    <div class="mb-3">
-        <label class="form-label">Statut</label>
-        <select class="form-select" @bind="_project.Status">
-            @foreach (var status in Enum.GetValues<ProjectStatus>())
-            {
-                <option value="@status">@status</option>
-            }
-        </select>
-    </div>
+        <div class="mb-3">
+            <label class="form-label">Date limite *</label>
+            <InputDate class="form-control" @bind-Value="_project.DueDate" />
+            <ValidationMessage For="() => _project.DueDate" />
+        </div>
 
-    @if (_errorMessage != null)
-    {
-        <div class="alert alert-danger">@_errorMessage</div>
-    }
+        <div class="mb-3">
+            <label class="form-label">Statut</label>
+            <InputSelect class="form-select" @bind-Value="_project.Status">
+                @foreach (var status in Enum.GetValues<ProjectStatus>())
+                {
+                    <option value="@status">@status</option>
+                }
+            </InputSelect>
+        </div>
 
-    <div class="d-flex gap-2">
-        <button class="btn btn-primary" @onclick="Save">Enregistrer</button>
-        <button class="btn btn-secondary" @onclick="Cancel">Annuler</button>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+            <button type="button" class="btn btn-secondary" @onclick="Cancel">Annuler</button>
+        </div>
     </div>
-</div>
+</EditForm>
 
 @code {
     private Project _project = new()
@@ -58,26 +64,14 @@
         DueDate = DateTime.Now.AddDays(30)
     };
 
-    private string? _errorMessage;
-
-    private async Task Save()
+    private async Task HandleSubmit()
     {
-        // Validation simple
-        if (string.IsNullOrWhiteSpace(_project.Name))
-        {
-            _errorMessage = "Le nom du projet est obligatoire.";
-            return;
-        }
-
-        if (_project.DueDate < _project.StartDate)
-        {
-            _errorMessage = "La date limite doit être après la date de début.";
-            return;
-        }
-
         await ProjectService.AddAsync(_project);
         NavManager.NavigateTo("/projects");
     }
 
-    private void Cancel() => NavManager.NavigateTo("/projects");
+    private void Cancel()
+    {
+        NavManager.NavigateTo("/projects");
+    }
 }
