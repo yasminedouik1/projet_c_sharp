@@ -6,55 +6,42 @@
 @inject NavigationManager NavManager
 
 <PageTitle>Nouveau Membre</PageTitle>
-
 <h1>Nouveau Membre</h1>
 
-<div class="card p-4" style="max-width: 500px;">
-    <div class="mb-3">
-        <label class="form-label">Nom complet</label>
-        <input class="form-control" @bind="_member.FullName" />
-    </div>
+<EditForm Model="_member" OnValidSubmit="Save">
+    <DataAnnotationsValidator />
 
-    <div class="mb-3">
-        <label class="form-label">Email</label>
-        <input type="email" class="form-control" @bind="_member.Email" />
-    </div>
+    <div class="card p-4" style="max-width:500px;">
+        <div class="mb-3">
+            <label class="form-label">Nom complet</label>
+            <InputText class="form-control" @bind-Value="_member.FullName" />
+            <ValidationMessage For="() => _member.FullName" />
+        </div>
 
-    <div class="mb-3">
-        <label class="form-label">Rôle</label>
-        <input class="form-control" @bind="_member.Role" 
-               placeholder="ex: Développeur, Chef de projet..." />
-    </div>
+        <div class="mb-3">
+            <label class="form-label">Email</label>
+            <InputText class="form-control" @bind-Value="_member.Email" />
+            <ValidationMessage For="() => _member.Email" />
+        </div>
 
-    @if (_errorMessage != null)
-    {
-        <div class="alert alert-danger">@_errorMessage</div>
-    }
+        <div class="mb-3">
+            <label class="form-label">Rôle</label>
+            <InputText class="form-control" @bind-Value="_member.Role"  />
+        </div>
 
-    <div class="d-flex gap-2">
-        <button class="btn btn-primary" @onclick="Save">Enregistrer</button>
-        <button class="btn btn-secondary" @onclick="Cancel">Annuler</button>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+            <button type="button" class="btn btn-secondary"
+                    @onclick="Cancel">Annuler</button>
+        </div>
     </div>
-</div>
+</EditForm>
 
 @code {
     private Member _member = new();
-    private string? _errorMessage;
 
     private async Task Save()
     {
-        if (string.IsNullOrWhiteSpace(_member.FullName))
-        {
-            _errorMessage = "Le nom est obligatoire.";
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(_member.Email))
-        {
-            _errorMessage = "L'email est obligatoire.";
-            return;
-        }
-
         await MemberService.AddAsync(_member);
         NavManager.NavigateTo("/members");
     }
