@@ -13,13 +13,11 @@ public class MemberService : IMemberService
         _context = context;
     }
 
-    // Tous les membres
     public async Task<List<Member>> GetAllAsync()
     {
         return await _context.Members.ToListAsync();
     }
 
-    // Un membre par son Id avec ses tâches
     public async Task<Member?> GetByIdAsync(int id)
     {
         return await _context.Members
@@ -29,21 +27,18 @@ public class MemberService : IMemberService
             .FirstOrDefaultAsync(m => m.Id == id);
     }
 
-    // Ajouter un membre
     public async Task AddAsync(Member member)
     {
         _context.Members.Add(member);
         await _context.SaveChangesAsync();
     }
 
-    // Modifier un membre
     public async Task UpdateAsync(Member member)
     {
         _context.Members.Update(member);
         await _context.SaveChangesAsync();
     }
 
-    // Supprimer un membre
     public async Task DeleteAsync(int id)
     {
         var member = await _context.Members.FindAsync(id);
@@ -54,7 +49,6 @@ public class MemberService : IMemberService
         }
     }
 
-    // Affecter un membre à un projet
     public async Task AddToProjectAsync(int memberId, int projectId)
     {
         // Vérifier qu'il n'est pas déjà dans ce projet
@@ -72,7 +66,6 @@ public class MemberService : IMemberService
         }
     }
 
-    // Tous les membres d'un projet
     public async Task<List<Member>> GetByProjectAsync(int projectId)
     {
         return await _context.ProjectMembers

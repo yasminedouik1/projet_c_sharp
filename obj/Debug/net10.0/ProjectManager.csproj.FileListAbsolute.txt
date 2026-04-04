@@ -140,7 +140,6 @@ C:\Users\GHADA\Desktop\Projet c#\projet_c_sharp\obj\Debug\net10.0\scopedcss\Comp
 C:\Users\GHADA\Desktop\Projet c#\projet_c_sharp\obj\Debug\net10.0\scopedcss\Components\Layout\ReconnectModal.razor.rz.scp.css
 C:\Users\GHADA\Desktop\Projet c#\projet_c_sharp\obj\Debug\net10.0\scopedcss\bundle\ProjectManager.styles.css
 C:\Users\GHADA\Desktop\Projet c#\projet_c_sharp\obj\Debug\net10.0\scopedcss\projectbundle\ProjectManager.bundle.scp.css
-C:\Users\GHADA\Desktop\Projet c#\projet_c_sharp\obj\Debug\net10.0\compressed\lqrv2vokoi-{0}-khy4lop6wu-khy4lop6wu.gz
 C:\Users\GHADA\Desktop\Projet c#\projet_c_sharp\obj\Debug\net10.0\compressed\py2p2y52fc-{0}-t1cqhe9u97-t1cqhe9u97.gz
 C:\Users\GHADA\Desktop\Projet c#\projet_c_sharp\obj\Debug\net10.0\compressed\h6ydub3tyd-{0}-c2jlpeoesf-c2jlpeoesf.gz
 C:\Users\GHADA\Desktop\Projet c#\projet_c_sharp\obj\Debug\net10.0\compressed\b79t43alwm-{0}-sejl45xvog-sejl45xvog.gz
@@ -404,3 +403,4 @@ C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\refint\Project
 C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\ProjectManager.pdb
 C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\ProjectManager.genruntimeconfig.cache
 C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\ref\ProjectManager.dll
+C:\Users\GHADA\Desktop\Projet c#\projet_c_sharp\obj\Debug\net10.0\compressed\lqrv2vokoi-{0}-rbd87d23jn-rbd87d23jn.gz

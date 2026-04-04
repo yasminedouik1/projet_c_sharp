@@ -97,7 +97,6 @@ else
         _isLoading = false;
     }
 
-    // Méthodes de navigation séparées — évite le problème du $ dans les attributs
     private void GoToTasks()   => NavManager.NavigateTo("/tasks/" + Id);
     private void GoToMembers() => NavManager.NavigateTo("/projects/" + Id + "/members");
     private void GoBack()      => NavManager.NavigateTo("/projects");

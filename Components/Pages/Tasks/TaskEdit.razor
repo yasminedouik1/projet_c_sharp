@@ -1,0 +1,77 @@
+@page "/tasks/edit/{Id:int}"
+@rendermode InteractiveServer
+
+@using ProjectManager.Models
+@using ProjectManager.Services
+@using TaskStatusEnum = ProjectManager.Models.TaskStatus 
+
+@inject ITaskService TaskService
+@inject NavigationManager NavManager
+
+<PageTitle>Modifier Tâche</PageTitle>
+
+<h1>Modifier Tâche</h1>
+
+<EditForm Model="_task" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="card p-4" style="max-width: 600px;">
+        <div class="mb-3">
+            <label class="form-label">Titre *</label>
+            <InputText class="form-control" @bind-Value="_task.Title" />
+            <ValidationMessage For="() => _task.Title" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <InputTextArea class="form-control" @bind-Value="_task.Description" rows="3" />
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Date limite *</label>
+                <InputDate class="form-control" @bind-Value="_task.DueDate" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Statut</label>
+                <InputSelect class="form-select" @bind-Value="_task.Status">
+                    @foreach (var status in Enum.GetValues<TaskStatusEnum>())
+                    {
+                        <option value="@status">@status</option>
+                    }
+                </InputSelect>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+            <button type="button" class="btn btn-secondary" @onclick="Cancel">Annuler</button>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private ProjectTask _task = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var t = await TaskService.GetByIdAsync(Id);
+        if (t != null)
+            _task = t;
+        else
+            NavManager.NavigateTo("/projects");
+    }
+
+    private async Task HandleSubmit()
+    {
+        await TaskService.UpdateAsync(_task);
+        NavManager.NavigateTo($"/projects/{_task.ProjectId}");  
+    }
+
+    private void Cancel()
+    {
+        NavManager.NavigateTo($"/projects/{_task.ProjectId}");  
+    }
+}

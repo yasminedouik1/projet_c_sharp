@@ -1,0 +1,55 @@
+@page "/members/edit/{Id:int}"
+@rendermode InteractiveServer
+
+@using ProjectManager.Models
+@using ProjectManager.Services
+
+@inject IMemberService MemberService
+@inject NavigationManager NavManager
+
+<PageTitle>Modifier Membre</PageTitle>
+
+<h1>Modifier Membre</h1>
+
+<EditForm Model="_member" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="card p-4" style="max-width: 500px;">
+        <div class="mb-3">
+            <label>Nom complet *</label>
+            <InputText class="form-control" @bind-Value="_member.FullName" />
+            <ValidationMessage For="() => _member.FullName" />
+        </div>
+
+        <div class="mb-3">
+            <label>Email *</label>
+            <InputText class="form-control" @bind-Value="_member.Email" />
+            <ValidationMessage For="() => _member.Email" />
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+            <button type="button" class="btn btn-secondary" @onclick="Cancel">Annuler</button>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private Member _member = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var m = await MemberService.GetByIdAsync(Id);
+        if (m != null) _member = m;
+    }
+
+    private async Task HandleSubmit()
+    {
+        await MemberService.UpdateAsync(_member);
+        NavManager.NavigateTo("/members");
+    }
+
+    private void Cancel() => NavManager.NavigateTo("/members");
+}
