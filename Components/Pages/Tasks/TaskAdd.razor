@@ -1,7 +1,10 @@
 @page "/tasks/{ProjectId:int}/add"
 @rendermode InteractiveServer
+
 @using ProjectManager.Models
 @using ProjectManager.Services
+@using TaskStatusEnum = ProjectManager.Models.TaskStatus
+
 @inject ITaskService TaskService
 @inject IMemberService MemberService
 @inject NavigationManager NavManager
@@ -30,15 +33,6 @@
             <ValidationMessage For="() => _task.DueDate" />
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Statut</label>
-            <InputSelect class="form-select" @bind-Value="_task.Status">
-                @foreach (var s in Enum.GetValues<Models.TaskStatus>())
-                {
-                    <option value="@s">@s</option>
-                }
-            </InputSelect>
-        </div>
 
         <div class="mb-3">
             <label class="form-label">Assigner à</label>
@@ -62,17 +56,24 @@
 @code {
     [Parameter] public int ProjectId { get; set; }
 
-    private ProjectTask _task = new() { DueDate = DateTime.Now.AddDays(7) };
+    private ProjectTask _task = new() 
+    { 
+        DueDate = DateTime.Now.AddDays(7),
+        Status = TaskStatusEnum.Todo    
+    };
+
     private List<Member> _members = new();
 
     protected override async Task OnInitializedAsync()
     {
-        _members      = await MemberService.GetAllAsync();
+        _members = await MemberService.GetAllAsync();
         _task.ProjectId = ProjectId;
     }
 
     private async Task Save()
     {
+        _task.Status = TaskStatusEnum.Todo;
+
         await TaskService.AddAsync(_task);
         NavManager.NavigateTo("/tasks/" + ProjectId);
     }

@@ -16,7 +16,6 @@
 }
 else
 {
-    <!-- Indicateurs globaux -->
     <div class="row mb-4">
         <div class="col-md-3">
             <div class="card text-center p-3">
@@ -44,7 +43,6 @@ else
         </div>
     </div>
 
-    <!-- Widget Dev A : santé des projets -->
     <h4>Santé des projets</h4>
     <div class="row mb-4">
         @foreach (var item in _projectScores)
@@ -70,7 +68,6 @@ else
         }
     </div>
 
-<!-- Widget Dev B : performance des membres -->
     <h4>Performance des membres</h4>
     <table class="table table-striped">
         <thead>
@@ -122,7 +119,6 @@ else
 
     private List<ProjectScoreViewModel> _projectScores = new();
 
-    // Dev B ajoutera _memberStats ici
     protected List<MemberStatViewModel> _memberStats = new();
 
     protected override async Task OnInitializedAsync()
@@ -138,7 +134,6 @@ else
             p.Tasks.Count(t => t.DueDate < DateTime.Now &&
                               t.Status != Models.TaskStatus.Done));
 
-        // Scores projets — Dev A
         foreach (var project in projects)
         {
             var score     = await AnalyticsService.GetHealthScoreAsync(project.Id);
@@ -154,13 +149,11 @@ else
             });
         }
 
-        // Stats membres — sera complété par Dev B
         await LoadMemberStatsAsync(members);
 
         _isLoading = false;
     }
 
-    // Dev B remplacera cette méthode
 protected  async Task LoadMemberStatsAsync(List<Member> members)
 {
     foreach (var member in members)
@@ -193,7 +186,7 @@ protected  async Task LoadMemberStatsAsync(List<Member> members)
         _    => "Critique"
     };
 
-    // ViewModels
+
     protected class ProjectScoreViewModel
     {
         public string ProjectName { get; set; } = "";

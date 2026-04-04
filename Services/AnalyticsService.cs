@@ -13,7 +13,6 @@ public class AnalyticsService : IAnalyticsService
         _context = context;
     }
 
-    // ───── PARTIE DEV A ─────
 
     public async Task<int> GetCompletedTasksCountAsync(int projectId)
     {

@@ -13,7 +13,6 @@ public class TaskService : ITaskService
         _context = context;
     }
 
-    // Toutes les tâches d'un projet
     public async Task<List<ProjectTask>> GetAllByProjectAsync(int projectId)
     {
         return await _context.Tasks
@@ -22,7 +21,6 @@ public class TaskService : ITaskService
             .ToListAsync();
     }
 
-    // Une tâche par son Id
     public async Task<ProjectTask?> GetByIdAsync(int id)
     {
         return await _context.Tasks
@@ -31,21 +29,18 @@ public class TaskService : ITaskService
             .FirstOrDefaultAsync(t => t.Id == id);
     }
 
-    // Ajouter une tâche
     public async Task AddAsync(ProjectTask task)
     {
         _context.Tasks.Add(task);
         await _context.SaveChangesAsync();
     }
 
-    // Modifier une tâche
     public async Task UpdateAsync(ProjectTask task)
     {
         _context.Tasks.Update(task);
         await _context.SaveChangesAsync();
     }
 
-    // Supprimer une tâche
     public async Task DeleteAsync(int id)
     {
         var task = await _context.Tasks.FindAsync(id);
@@ -56,8 +51,6 @@ public class TaskService : ITaskService
         }
     }
 
-    // Détection automatique des retards (LINQ)
-    // Une tâche est en retard si : date dépassée ET pas encore terminée
     public async Task<List<ProjectTask>> GetOverdueTasksAsync()
     {
         return await _context.Tasks

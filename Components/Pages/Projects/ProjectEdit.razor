@@ -1,0 +1,84 @@
+@page "/projects/edit/{Id:int}"
+@rendermode InteractiveServer
+
+@using ProjectManager.Models
+@using ProjectManager.Services
+@using System.ComponentModel.DataAnnotations
+
+@inject IProjectService ProjectService
+@inject NavigationManager NavManager
+
+<PageTitle>Modifier Projet</PageTitle>
+
+<h1>Modifier le Projet</h1>
+
+<EditForm Model="_project" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="card p-4" style="max-width: 650px;">
+        <div class="mb-3">
+            <label class="form-label">Nom du projet *</label>
+            <InputText class="form-control" @bind-Value="_project.Name" />
+            <ValidationMessage For="() => _project.Name" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <InputTextArea class="form-control" @bind-Value="_project.Description" rows="3" />
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Date de début</label>
+                <InputDate class="form-control" @bind-Value="_project.StartDate" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Date limite *</label>
+                <InputDate class="form-control" @bind-Value="_project.DueDate" />
+                <ValidationMessage For="() => _project.DueDate" />
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Statut</label>
+            <InputSelect class="form-select" @bind-Value="_project.Status">
+                @foreach (var status in Enum.GetValues<ProjectStatus>())
+                {
+                    <option value="@status">@status</option>
+                }
+            </InputSelect>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+            <button type="button" class="btn btn-secondary" @onclick="Cancel">Annuler</button>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private Project _project = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var proj = await ProjectService.GetByIdAsync(Id);
+        if (proj != null)
+            _project = proj;
+        else
+            NavManager.NavigateTo("/projects");
+    }
+
+    private async Task HandleSubmit()
+    {
+        await ProjectService.UpdateAsync(_project);
+        NavManager.NavigateTo("/projects");
+    }
+
+    private void Cancel()
+    {
+        NavManager.NavigateTo("/projects");
+    }
+}

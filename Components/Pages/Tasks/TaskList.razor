@@ -76,7 +76,6 @@ else
         _isLoading = false;
     }
 
-    // Détection retard — ligne rouge automatiquement
     private bool IsOverdue(ProjectTask task) =>
         task.DueDate < DateTime.Now && task.Status != Models.TaskStatus.Done;
 
