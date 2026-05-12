@@ -93,4 +93,8 @@
         ProjectStatus.Cancelled => "status-cancelled",
         _ => ""
     };
+    protected override async Task OnParametersSetAsync()
+    {
+    // Optional: you can add loading state here if you want
+    }
 }

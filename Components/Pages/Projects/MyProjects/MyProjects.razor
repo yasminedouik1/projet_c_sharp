@@ -3,12 +3,13 @@
 @using ProjectManager.Services
 @inject IMyProjectsService MyProjectsService
 
-<PageTitle>Test Mes Projets</PageTitle>
+<PageTitle>Mes Projets</PageTitle>
 
 <div class="container mt-4">
 
-    <h1>Test GetProjectsByMemberAsync</h1>
+    <h1>Mes Projets</h1>
 
+    <!-- Member Selector -->
     <div class="mb-4">
         <label class="form-label fw-bold">Sélectionnez un membre :</label>
         <select class="form-select" @onchange="OnMemberSelected">
@@ -22,43 +23,66 @@
 
     @if (_selectedMember != null)
     {
-        <h4>Résultat pour : <strong>@_selectedMember.FullName</strong> (ID: @_selectedMember.Id)</h4>
-        
-        <p><strong>Liaisons dans ProjectMember :</strong> @_projectCount</p>
+        <h4>Projets de : <strong>@_selectedMember.FullName</strong></h4>
 
-        @if (_projects.Count == 0)
+        @if (_selectedProject == null)
         {
-            <div class="alert alert-warning">
-                Aucun projet trouvé pour ce membre.
-            </div>
-        }
-        else
-        {
-            <h5>@_projects.Count projet(s) trouvé(s) :</h5>
+            <!-- PROJECT LIST -->
             <div class="row">
-                @foreach (var p in _projects)
+                @foreach (var project in _projects)
                 {
-                    <div class="col-md-6 mb-3">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <h5 class="card-title">@p.Name</h5>
-                                <p class="card-text">@p.Description</p>
-                                <p><strong>Statut :</strong> @p.Status</p>
-                                <p><strong>Tâches :</strong> @p.Tasks.Count</p>
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="project-list-card" @onclick="() => SelectProject(project)">
+                            <h5>@project.Name</h5>
+                            <p>@project.Description</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-primary">@project.Status</span>
+                                <small class="text-muted">@project.Tasks.Count tâches</small>
                             </div>
                         </div>
                     </div>
                 }
             </div>
         }
+        else
+        {
+            <!-- PROJECT DETAIL + KANBAN -->
+            <div class="mb-3">
+                <button class="btn btn-outline-secondary" @onclick="BackToList">
+                    ← Retour à la liste des projets
+                </button>
+            </div>
+
+            <ProjectCard Project="_selectedProject" 
+                         MemberId="_selectedMember.Id" 
+                         OnTaskStatusChanged="OnTaskStatusChanged" />
+        }
     }
 </div>
+
+<style>
+    .project-list-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        height: 100%;
+    }
+
+    .project-list-card:hover {
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        transform: translateY(-4px);
+        border-color: #6366f1;
+    }
+</style>
 
 @code {
     private List<Member> _members = new();
     private List<Project> _projects = new();
     private Member? _selectedMember;
-    private int _projectCount = 0;
+    private Project? _selectedProject;
 
     protected override async Task OnInitializedAsync()
     {
@@ -70,18 +94,36 @@
         if (int.TryParse(e.Value?.ToString(), out int memberId) && memberId > 0)
         {
             _selectedMember = await MyProjectsService.GetMemberByIdAsync(memberId);
-            _projectCount = await MyProjectsService.GetProjectMemberCountAsync(memberId);
             _projects = await MyProjectsService.GetProjectsByMemberAsync(memberId);
-
-            Console.WriteLine($"Membre ID {memberId} → Liaisons: {_projectCount} | Projets chargés: {_projects.Count}");
+            _selectedProject = null; // Reset detail view
         }
         else
         {
             _selectedMember = null;
             _projects.Clear();
-            _projectCount = 0;
+            _selectedProject = null;
         }
+    }
 
+    private void SelectProject(Project project)
+    {
+        _selectedProject = project;
         StateHasChanged();
+    }
+
+    private void BackToList()
+    {
+        _selectedProject = null;
+        StateHasChanged();
+    }
+
+    private async Task OnTaskStatusChanged()
+    {
+        // Refresh tasks if needed
+        if (_selectedProject != null && _selectedMember != null)
+        {
+            _projects = await MyProjectsService.GetProjectsByMemberAsync(_selectedMember.Id);
+            _selectedProject = _projects.FirstOrDefault(p => p.Id == _selectedProject.Id);
+        }
     }
 }
