@@ -1,7 +1,9 @@
 @page "/dashboard"
 @rendermode InteractiveServer
+
 @using ProjectManager.Models
 @using ProjectManager.Services
+
 @inject IProjectService ProjectService
 @inject IMemberService MemberService
 @inject IAnalyticsService AnalyticsService
@@ -10,13 +12,40 @@
 
 <h1>Tableau de bord</h1>
 
+<div class="alert alert-info">
+    Bienvenue sur l'interface de pilotage des projets
+    <br />
+    Nous sommes le : <strong>@DateTime.Now.ToString("dd MMMM yyyy")</strong>
+</div>
+
+<p>
+    Status du système :
+    @if (IsSystemOK)
+    {
+        <span class="badge bg-success">Opérationnel</span>
+    }
+    else
+    {
+        <span class="badge bg-danger">Problème détecté</span>
+    }
+</p>
+
+<button class="btn btn-primary" @onclick="RefreshDashboard">
+    <span class="oi oi-reload"></span> Actualiser le tableau de bord
+</button>
+
+<div class="mt-3 card card-body">
+    Logs : @LastLog
+</div>
+
 @if (_isLoading)
 {
-    <p><em>Chargement des indicateurs...</em></p>
+    <p class="mt-3"><em>Chargement des indicateurs...</em></p>
 }
 else
 {
-    <div class="row mb-4">
+    <!-- KPIs simples comme dans Sensors -->
+    <div class="row mt-4">
         <div class="col-md-3">
             <div class="card text-center p-3">
                 <h6 class="text-muted">Projets actifs</h6>
@@ -43,39 +72,48 @@ else
         </div>
     </div>
 
-    <h4>Santé des projets</h4>
-    <div class="row mb-4">
-        @foreach (var item in _projectScores)
-        {
-            <div class="col-md-4 mb-3">
-                <div class="card p-3">
-                    <h6>@item.ProjectName</h6>
-                    <div class="progress mb-2" style="height: 20px;">
-                        <div class="progress-bar @GetHealthColor(item.Score)"
-                             style="width: @item.Score%">
-                            @item.Score%
+    <h4 class="mt-4">Santé des projets</h4>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Projet</th>
+                <th>Santé</th>
+                <th>Score</th>
+                <th>Tâches terminées</th>
+                <th>En retard</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in _projectScores)
+            {
+                <tr>
+                    <td>@item.ProjectName</td>
+                    <td>
+                        <span class="badge @GetHealthColor(item.Score)">
+                            @GetHealthLabel(item.Score)
+                        </span>
+                    </td>
+                    <td>
+                        <div class="progress" style="height: 18px;">
+                            <div class="progress-bar @GetHealthColor(item.Score)" 
+                                 style="width: @item.Score%">@item.Score%</div>
                         </div>
-                    </div>
-                    <span class="badge @GetHealthColor(item.Score)">
-                        @GetHealthLabel(item.Score)
-                    </span>
-                    <small class="text-muted mt-1">
-                        @item.Completed tâches terminées ·
-                        @item.Overdue en retard
-                    </small>
-                </div>
-            </div>
-        }
-    </div>
+                    </td>
+                    <td>@item.Completed</td>
+                    <td class="@(item.Overdue > 0 ? "text-danger" : "")">@item.Overdue</td>
+                </tr>
+            }
+        </tbody>
+    </table>
 
-    <h4>Performance des membres</h4>
+    <h4 class="mt-4">Performance des membres</h4>
     <table class="table table-striped">
         <thead>
             <tr>
                 <th>Membre</th>
                 <th>Taux de complétion</th>
                 <th>Charge de travail</th>
-                <th>Tâches en retard</th>
+                <th>Retard</th>
                 <th>Statut</th>
             </tr>
         </thead>
@@ -85,19 +123,14 @@ else
                 <tr>
                     <td>@m.FullName</td>
                     <td>
-                        <div class="progress" style="height:16px;">
-                            <div class="progress-bar bg-success"
-                                 style="width:@m.CompletionRate%">
+                        <div class="progress" style="height: 18px;">
+                            <div class="progress-bar bg-success" style="width:@m.CompletionRate%">
                                 @m.CompletionRate%
                             </div>
                         </div>
                     </td>
-                    <td>@m.Workload tâche(s) active(s)</td>
-                    <td>
-                        <span class="@(m.OverdueCount > 0 ? "text-danger fw-bold" : "")">
-                            @m.OverdueCount
-                        </span>
-                    </td>
+                    <td>@m.Workload tâche(s)</td>
+                    <td class="@(m.OverdueCount > 0 ? "text-danger fw-bold" : "")">@m.OverdueCount</td>
                     <td>
                         <span class="badge @GetMemberBadge(m.CompletionRate, m.OverdueCount)">
                             @GetMemberLabel(m.CompletionRate, m.OverdueCount)
@@ -118,34 +151,42 @@ else
     private int _totalCompleted;
 
     private List<ProjectScoreViewModel> _projectScores = new();
+    private List<MemberStatViewModel> _memberStats = new();
 
-    protected List<MemberStatViewModel> _memberStats = new();
+    private bool IsSystemOK = true;
+    private int RequestCount = 0;
+    private string LastLog = "Rien à signaler";
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadDashboardData();
+    }
+
+    private async Task LoadDashboardData()
+    {
+        _isLoading = true;
+
         var projects = await ProjectService.GetAllAsync();
-        var members  = await MemberService.GetAllAsync();
+        var members = await MemberService.GetAllAsync();
 
         _activeProjects = projects.Count(p => p.Status == ProjectStatus.Active);
-        _totalMembers   = members.Count;
-        _totalCompleted = projects.Sum(p =>
-            p.Tasks.Count(t => t.Status == Models.TaskStatus.Done));
-        _totalOverdue   = projects.Sum(p =>
-            p.Tasks.Count(t => t.DueDate < DateTime.Now &&
-                              t.Status != Models.TaskStatus.Done));
+        _totalMembers = members.Count;
+        _totalCompleted = projects.Sum(p => p.Tasks.Count(t => t.Status == Models.TaskStatus.Done));
+        _totalOverdue = projects.Sum(p => p.Tasks.Count(t => t.DueDate < DateTime.Now && t.Status != Models.TaskStatus.Done));
 
+        _projectScores.Clear();
         foreach (var project in projects)
         {
-            var score     = await AnalyticsService.GetHealthScoreAsync(project.Id);
+            var score = await AnalyticsService.GetHealthScoreAsync(project.Id);
             var completed = await AnalyticsService.GetCompletedTasksCountAsync(project.Id);
-            var overdue   = await AnalyticsService.GetOverdueTasksCountAsync(project.Id);
+            var overdue = await AnalyticsService.GetOverdueTasksCountAsync(project.Id);
 
             _projectScores.Add(new ProjectScoreViewModel
             {
                 ProjectName = project.Name,
-                Score       = score,
-                Completed   = completed,
-                Overdue     = overdue
+                Score = score,
+                Completed = completed,
+                Overdue = overdue
             });
         }
 
@@ -154,23 +195,37 @@ else
         _isLoading = false;
     }
 
-protected  async Task LoadMemberStatsAsync(List<Member> members)
-{
-    foreach (var member in members)
+    protected async Task LoadMemberStatsAsync(List<Member> members)
     {
-        var rate     = await AnalyticsService.GetMemberCompletionRateAsync(member.Id);
-        var workload = await AnalyticsService.GetMemberWorkloadAsync(member.Id);
-        var overdue  = await AnalyticsService.GetMemberOverdueCountAsync(member.Id);
-
-        _memberStats.Add(new MemberStatViewModel
+        _memberStats.Clear();
+        foreach (var member in members)
         {
-            FullName       = member.FullName,
-            CompletionRate = rate,
-            Workload       = workload,
-            OverdueCount   = overdue
-        });
+            var rate = await AnalyticsService.GetMemberCompletionRateAsync(member.Id);
+            var workload = await AnalyticsService.GetMemberWorkloadAsync(member.Id);
+            var overdue = await AnalyticsService.GetMemberOverdueCountAsync(member.Id);
+
+            _memberStats.Add(new MemberStatViewModel
+            {
+                FullName = member.FullName,
+                CompletionRate = rate,
+                Workload = workload,
+                OverdueCount = overdue
+            });
+        }
     }
-}
+
+    private async Task RefreshDashboard()
+    {
+        RequestCount++;
+        var rnd = new Random();
+        IsSystemOK = rnd.Next(0, 10) > 2;
+
+        LastLog = IsSystemOK 
+            ? $"Check {RequestCount} : Tout va bien" 
+            : $"Check {RequestCount} : Anomalie détectée";
+
+        await LoadDashboardData();
+    }
 
     private string GetHealthColor(double score) => score switch
     {
@@ -186,26 +241,25 @@ protected  async Task LoadMemberStatsAsync(List<Member> members)
         _    => "Critique"
     };
 
-
-    protected class ProjectScoreViewModel
-    {
-        public string ProjectName { get; set; } = "";
-        public double Score       { get; set; }
-        public int    Completed   { get; set; }
-        public int    Overdue     { get; set; }
-    }
-
-    protected class MemberStatViewModel
-    {
-        public string FullName       { get; set; } = "";
-        public double CompletionRate { get; set; }
-        public int    Workload       { get; set; }
-        public int    OverdueCount   { get; set; }
-    }
-
     private string GetMemberBadge(double rate, int overdue) =>
         overdue > 2 ? "bg-danger" : rate >= 70 ? "bg-success" : "bg-warning";
 
     private string GetMemberLabel(double rate, int overdue) =>
         overdue > 2 ? "En difficulté" : rate >= 70 ? "Performant" : "À surveiller";
+
+    protected class ProjectScoreViewModel
+    {
+        public string ProjectName { get; set; } = "";
+        public double Score { get; set; }
+        public int Completed { get; set; }
+        public int Overdue { get; set; }
+    }
+
+    protected class MemberStatViewModel
+    {
+        public string FullName { get; set; } = "";
+        public double CompletionRate { get; set; }
+        public int Workload { get; set; }
+        public int OverdueCount { get; set; }
+    }
 }

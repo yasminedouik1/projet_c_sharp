@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ProjectManager.Data;
 using ProjectManager.Services;
 using ProjectManager.Models;
+using Microsoft.Extensions.FileProviders; 
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +17,18 @@ builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IMemberService, MemberService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddScoped<IMyProjectsService, MyProjectsService>();
 var app = builder.Build();
+// Servir les fichiers statiques de wwwroot (existant)
+app.UseStaticFiles();
+
+// Servir les fichiers du dossier UI (NOUVEAU)
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "UI")),
+    RequestPath = "/UI"
+});
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
