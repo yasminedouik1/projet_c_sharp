@@ -1,0 +1,48 @@
+@page "/register"
+@rendermode InteractiveServer
+@using ProjectManager.Models
+@using Microsoft.AspNetCore.Identity
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5 card shadow-sm p-4">
+        <h3 class="text-center mb-4">Inscription</h3>
+
+        @if (!string.IsNullOrEmpty(Error))
+        {
+            <div class="alert alert-danger">@Error</div>
+        }
+
+        <form method="post" action="/api/auth/register" data-enhance="false">
+            <div class="mb-3">
+                <label class="form-label">Nom complet</label>
+                <input type="text" name="fullName" class="form-control" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Mot de passe</label>
+                <input type="password" name="password" class="form-control" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Confirmer le mot de passe</label>
+                <input type="password" name="confirmPassword" class="form-control" required />
+            </div>
+
+            <button type="submit" class="btn btn-success w-100">S'inscrire</button>
+        </form>
+
+        <div class="text-center mt-3">
+            <a href="/login">Déjà un compte ? Se connecter</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public string? Error { get; set; }
+}
