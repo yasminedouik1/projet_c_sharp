@@ -13,24 +13,11 @@
 <h1>Tableau de bord</h1>
 
 <div class="alert alert-info">
-    Bienvenue sur l'interface de pilotage des projets
-    <br />
+    Bienvenue sur l'interface de pilotage des projets<br>
     Nous sommes le : <strong>@DateTime.Now.ToString("dd MMMM yyyy")</strong>
 </div>
 
-<p>
-    Status du système :
-    @if (IsSystemOK)
-    {
-        <span class="badge bg-success">Opérationnel</span>
-    }
-    else
-    {
-        <span class="badge bg-danger">Problème détecté</span>
-    }
-</p>
-
-<button class="btn btn-primary" @onclick="RefreshDashboard">
+<button class="btn btn-primary mb-3" @onclick="RefreshDashboard">
     <span class="oi oi-reload"></span> Actualiser le tableau de bord
 </button>
 
@@ -44,7 +31,7 @@
 }
 else
 {
-    <!-- KPIs simples comme dans Sensors -->
+    <!-- KPIs -->
     <div class="row mt-4">
         <div class="col-md-3">
             <div class="card text-center p-3">
@@ -72,7 +59,22 @@ else
         </div>
     </div>
 
-    <h4 class="mt-4">Santé des projets</h4>
+    <!-- ====================== SANTÉ DES PROJETS ====================== -->
+    <h4 class="mt-5">Santé des projets</h4>
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" 
+                       @bind="_projectSearchText" 
+                       @bind:event="oninput"
+                       class="form-control" 
+                       placeholder="Rechercher par nom de projet..." />
+            </div>
+        </div>
+    </div>
+
     <table class="table table-striped">
         <thead>
             <tr>
@@ -84,7 +86,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in _projectScores)
+            @foreach (var item in FilteredProjectScores)
             {
                 <tr>
                     <td>@item.ProjectName</td>
@@ -106,7 +108,18 @@ else
         </tbody>
     </table>
 
-    <h4 class="mt-4">Performance des membres</h4>
+    <!-- ====================== PERFORMANCE DES MEMBRES ====================== -->
+    <h4 class="mt-5">Performance des membres</h4>
+
+    <div class="mb-3">
+        <select class="form-select w-auto" @bind="_selectedMemberStatusFilter">
+            <option value="All">Tous les membres</option>
+            <option value="Performant">Performant</option>
+            <option value="Surveiller">À surveiller</option>
+            <option value="Difficulte">En difficulté</option>
+        </select>
+    </div>
+
     <table class="table table-striped">
         <thead>
             <tr>
@@ -118,7 +131,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var m in _memberStats)
+            @foreach (var m in FilteredMemberStats)
             {
                 <tr>
                     <td>@m.FullName</td>
@@ -153,6 +166,10 @@ else
     private List<ProjectScoreViewModel> _projectScores = new();
     private List<MemberStatViewModel> _memberStats = new();
 
+    // Filtres
+    private string _projectSearchText = "";
+    private string _selectedMemberStatusFilter = "All";
+
     private bool IsSystemOK = true;
     private int RequestCount = 0;
     private string LastLog = "Rien à signaler";
@@ -174,6 +191,7 @@ else
         _totalCompleted = projects.Sum(p => p.Tasks.Count(t => t.Status == Models.TaskStatus.Done));
         _totalOverdue = projects.Sum(p => p.Tasks.Count(t => t.DueDate < DateTime.Now && t.Status != Models.TaskStatus.Done));
 
+        // Chargement des scores projets
         _projectScores.Clear();
         foreach (var project in projects)
         {
@@ -195,7 +213,7 @@ else
         _isLoading = false;
     }
 
-    protected async Task LoadMemberStatsAsync(List<Member> members)
+    private async Task LoadMemberStatsAsync(List<Member> members)
     {
         _memberStats.Clear();
         foreach (var member in members)
@@ -214,6 +232,35 @@ else
         }
     }
 
+    // ================== FILTRES ==================
+
+    private List<ProjectScoreViewModel> FilteredProjectScores =>
+        string.IsNullOrWhiteSpace(_projectSearchText)
+            ? _projectScores
+            : _projectScores.Where(p => p.ProjectName.Contains(_projectSearchText, StringComparison.OrdinalIgnoreCase))
+                            .ToList();
+
+    private List<MemberStatViewModel> FilteredMemberStats
+    {
+        get
+        {
+            var query = _memberStats.AsEnumerable();
+
+            if (_selectedMemberStatusFilter != "All")
+            {
+                query = _selectedMemberStatusFilter switch
+                {
+                    "Performant" => query.Where(m => GetMemberLabel(m.CompletionRate, m.OverdueCount) == "Performant"),
+                    "Surveiller" => query.Where(m => GetMemberLabel(m.CompletionRate, m.OverdueCount) == "À surveiller"),
+                    "Difficulte" => query.Where(m => GetMemberLabel(m.CompletionRate, m.OverdueCount) == "En difficulté"),
+                    _ => query
+                };
+            }
+
+            return query.ToList();
+        }
+    }
+
     private async Task RefreshDashboard()
     {
         RequestCount++;
@@ -227,6 +274,7 @@ else
         await LoadDashboardData();
     }
 
+    // Méthodes existantes (GetHealthColor, GetHealthLabel, etc.)
     private string GetHealthColor(double score) => score switch
     {
         > 75 => "bg-success",
@@ -247,6 +295,7 @@ else
     private string GetMemberLabel(double rate, int overdue) =>
         overdue > 2 ? "En difficulté" : rate >= 70 ? "Performant" : "À surveiller";
 
+    // ViewModels
     protected class ProjectScoreViewModel
     {
         public string ProjectName { get; set; } = "";

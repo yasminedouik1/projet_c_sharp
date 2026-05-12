@@ -37,14 +37,7 @@
                 <ValidationMessage For="() => _task.DueDate" />
             </div>
 
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Statut</label>
-                <InputSelect class="form-select" @bind-Value="_task.Status">
-                    <option value="Todo">À faire</option>
-                    <option value="InProgress">En cours</option>
-                    <option value="Done">Terminé</option>
-                </InputSelect>
-            </div>
+            <!-- Statut supprimé du formulaire (fixé à Todo) -->
         </div>
 
         <div class="mb-3">
@@ -71,7 +64,8 @@
     private ProjectTask _task = new() 
     { 
         DueDate = DateTime.Now.AddDays(7),
-        Status = TaskStatusEnum.Todo
+        Status = TaskStatusEnum.Todo,   // Statut fixé par défaut
+        ProjectId = 0
     };
 
     private List<Member> _members = new();
@@ -84,6 +78,9 @@
 
     private async Task Save()
     {
+        // On force à nouveau Todo au cas où
+        _task.Status = TaskStatusEnum.Todo;
+
         await TaskService.AddAsync(_task);
         NavManager.NavigateTo($"/projects/{ProjectId}");
     }

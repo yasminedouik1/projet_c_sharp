@@ -12,4 +12,6 @@ public interface IMemberService
     Task AddToProjectAsync(int memberId, int projectId);
     Task<List<Member>> GetByProjectAsync(int projectId);
     Task<List<Member>> GetMembersByProjectAsync(int projectId);
+    Task AddMemberToProjectAsync(int projectId, int memberId);
+Task RemoveMemberFromProjectAsync(int projectId, int memberId);
 }

@@ -1,10 +1,13 @@
 @page "/projects/{Id:int}"
 @rendermode InteractiveServer
 @inject IJSRuntime JS
+
 @using ProjectManager.Models
 @using ProjectManager.Services
+
 @inject IProjectService ProjectService
 @inject ITaskService TaskService
+@inject IMemberService MemberService  
 @inject NavigationManager NavManager
 
 <PageTitle>Détail Projet</PageTitle>
@@ -48,18 +51,41 @@ else
         </div>
     </div>
 
-    <!-- Membres -->
+    <!-- ====================== MEMBRES ====================== -->
     <h4>Membres du projet (@_project.Members.Count)</h4>
-    <button class="btn btn-sm btn-primary mb-3" @onclick="GoToMembers">
-        Gérer les membres
-    </button>
+
+    <!-- Ajouter un membre -->
+    <div class="mb-3">
+        <h6>Ajouter un membre</h6>
+        <div class="d-flex gap-2">
+            <select class="form-select" @bind="_selectedMemberId" style="max-width: 350px;">
+                <option value="0">-- Choisir un membre --</option>
+                @foreach (var m in _allMembers.Where(m => !_project.Members.Any(pm => pm.MemberId == m.Id)))
+                {
+                    <option value="@m.Id">@m.FullName</option>
+                }
+            </select>
+           <!-- NOUVEAU CODE - Bouton qui s'active correctement -->
+<button class="btn btn-success" 
+        @onclick="AddMember" 
+        disabled="@(_selectedMemberId == 0)">
+    + Ajouter
+</button>
+        </div>
+    </div>
 
     @if (_project.Members.Count > 0)
     {
         <ul class="list-group mb-4">
             @foreach (var pm in _project.Members)
             {
-                <li class="list-group-item">@pm.Member?.FullName</li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>@pm.Member?.FullName</span>
+                    <button class="btn btn-sm btn-danger"
+                            @onclick="() => RemoveMember(pm.MemberId)">
+                        Supprimer
+                    </button>
+                </li>
             }
         </ul>
     }
@@ -68,7 +94,7 @@ else
         <p class="text-muted">Aucun membre assigné à ce projet.</p>
     }
 
-    <!-- Tâches -->
+    <!-- ====================== TÂCHES ====================== -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4>Tâches (@_project.Tasks.Count)</h4>
         <button class="btn btn-primary" @onclick="GoToAddTask">
@@ -128,18 +154,41 @@ else
 
     private Project? _project;
     private bool _isLoading = true;
+    private List<Member> _allMembers = new();
+    private int _selectedMemberId = 0;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadProject();
+        await LoadData();
     }
 
-    private async Task LoadProject()
+    private async Task LoadData()
     {
         _project = await ProjectService.GetByIdAsync(Id);
+        _allMembers = await MemberService.GetAllAsync();
         _isLoading = false;
     }
 
+    // ================== Gestion Membres ==================
+    private async Task AddMember()
+    {
+        if (_selectedMemberId == 0) return;
+
+        await MemberService.AddMemberToProjectAsync(Id, _selectedMemberId);
+        _selectedMemberId = 0;
+        await LoadData(); // Refresh
+    }
+
+    private async Task RemoveMember(int memberId)
+    {
+        var confirmed = await JS.InvokeAsync<bool>("confirm", $"Supprimer ce membre du projet ?");
+        if (!confirmed) return;
+
+        await MemberService.RemoveMemberFromProjectAsync(Id, memberId);
+        await LoadData();
+    }
+
+    // ================== Gestion Tâches ==================
     private bool IsOverdue(ProjectTask task) =>
         task.DueDate < DateTime.Now && task.Status != Models.TaskStatus.Done;
 
@@ -148,7 +197,7 @@ else
         Models.TaskStatus.Done       => "bg-success",
         Models.TaskStatus.InProgress => "bg-warning",
         Models.TaskStatus.Todo       => "bg-secondary",
-        _                            => "bg-secondary"
+        _ => "bg-secondary"
     };
 
     private string GetStatusLabel(Models.TaskStatus status) => status switch
@@ -156,22 +205,20 @@ else
         Models.TaskStatus.Todo       => "À faire",
         Models.TaskStatus.InProgress => "En cours",
         Models.TaskStatus.Done       => "Terminé",
-        _                            => status.ToString()
+        _ => status.ToString()
     };
 
-    // Navigation
-    private void GoToAddTask()   => NavManager.NavigateTo($"/tasks/{Id}/add");
+    private void GoToAddTask() => NavManager.NavigateTo($"/tasks/{Id}/add");
     private void GoToEditTask(int taskId) => NavManager.NavigateTo($"/tasks/edit/{taskId}");
-    private void GoToMembers()   => NavManager.NavigateTo($"/projects/{Id}/members");
-    private void GoBack()        => NavManager.NavigateTo("/projects");
+    private void GoBack() => NavManager.NavigateTo("/projects");
 
-    // Suppression
     private async Task DeleteTask(int taskId)
-{
-    var confirmed = await JS.InvokeAsync<bool>("confirm", "Voulez-vous vraiment supprimer cette tâche ?");
-    if (!confirmed) return;
+    {
+        var confirmed = await JS.InvokeAsync<bool>("confirm", "Voulez-vous vraiment supprimer cette tâche ?");
+        if (!confirmed) return;
 
-    await TaskService.DeleteAsync(taskId);
-    await LoadProject();   // Recharger les données
-}
+        await TaskService.DeleteAsync(taskId);
+        await LoadData();
+    }
+    
 }
