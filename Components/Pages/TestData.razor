@@ -1,0 +1,61 @@
+@page "/test-data"
+@using ProjectManager.Models
+@using ProjectManager.Services
+@using ProjectManager.Data
+@using Microsoft.EntityFrameworkCore
+@inject IMyProjectsService MyProjectsService
+@inject AppDbContext Db
+
+<PageTitle>Test Données</PageTitle>
+
+<div class="container mt-4">
+    <h1>Test Base de données - ProjectMembers</h1>
+
+    <button class="btn btn-primary mb-3" @onclick="CheckData">
+        🔄 Vérifier les données dans ProjectMembers
+    </button>
+
+    <hr />
+
+    <h4>Résultat :</h4>
+    <pre style="background:#f8f9fa; padding:15px; border-radius:8px;">@result</pre>
+</div>
+
+@code {
+    private string result = "Clique sur le bouton pour vérifier...";
+
+    private async Task CheckData()
+    {
+        try
+        {
+            var members = await MyProjectsService.GetAllMembersAsync();
+
+            var projectMembers = await Db.ProjectMembers
+                .Include(pm => pm.Project)
+                .Include(pm => pm.Member)
+                .ToListAsync();
+
+            result = $"✅ Membres totaux : {members.Count}\n";
+            result += $"📊 Liaisons dans ProjectMembers : {projectMembers.Count}\n\n";
+
+            if (projectMembers.Count == 0)
+            {
+                result += "❌ AUCUNE donnée trouvée dans la table ProjectMembers !\n\n";
+                result += "Tu dois d'abord affecter des membres à des projets.";
+            }
+            else
+            {
+                foreach (var pm in projectMembers)
+                {
+                    result += $"• Projet : {pm.Project.Name}  ←  Membre : {pm.Member.FullName}\n";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            result = $"❌ ERREUR : {ex.Message}";
+        }
+
+        StateHasChanged();
+    }
+}
