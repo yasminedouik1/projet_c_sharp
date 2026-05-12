@@ -73,4 +73,13 @@ public class MemberService : IMemberService
             .Select(pm => pm.Member)
             .ToListAsync();
     }
+    public async Task<List<Member>> GetMembersByProjectAsync(int projectId)
+{
+    return await _context.ProjectMembers
+        .Where(pm => pm.ProjectId == projectId)
+        .Include(pm => pm.Member)
+        .Select(pm => pm.Member!)
+        .OrderBy(m => m.FullName)
+        .ToListAsync();
+}
 }
