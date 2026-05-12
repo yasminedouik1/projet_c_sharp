@@ -1,0 +1,96 @@
+@using ProjectManager.Models
+@using ProjectManager.Services
+
+<div class="project-card">
+    <div class="pc-header">
+        <div class="pc-info">
+            <h2 class="pc-name">📁 @Project.Name</h2>
+            @if (!string.IsNullOrEmpty(Project.Description))
+            {
+                <p class="pc-desc">@Project.Description</p>
+            }
+        </div>
+        <div class="pc-meta">
+            <span class="pc-status @GetStatusClass(Project.Status)">@Project.Status</span>
+            <span class="pc-date">📅 @Project.DueDate.ToString("dd/MM/yyyy")</span>
+        </div>
+    </div>
+
+    <KanbanBoard ProjectId="Project.Id"
+                 MemberId="MemberId"
+                 OnTaskStatusChanged="OnTaskStatusChanged" />
+</div>
+
+<style>
+    .project-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+    }
+
+    .pc-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding: 1.5rem 2rem;
+        background: linear-gradient(135deg, #f8faff 0%, #f1f5f9 100%);
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .pc-name {
+        margin: 0 0 0.3rem 0;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .pc-desc {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.88rem;
+        max-width: 500px;
+    }
+
+    .pc-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-shrink: 0;
+    }
+
+    .pc-status {
+        padding: 0.3rem 0.9rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .status-active    { background: #dcfce7; color: #16a34a; }
+    .status-completed { background: #dbeafe; color: #2563eb; }
+    .status-onhold    { background: #fef9c3; color: #ca8a04; }
+    .status-cancelled { background: #fee2e2; color: #dc2626; }
+
+    .pc-date {
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+</style>
+
+@code {
+    [Parameter] public Project Project { get; set; } = null!;
+    [Parameter] public int MemberId { get; set; }
+    [Parameter] public EventCallback OnTaskStatusChanged { get; set; }
+
+    private string GetStatusClass(ProjectStatus status) => status switch
+    {
+        ProjectStatus.Active    => "status-active",
+        ProjectStatus.Completed => "status-completed",
+        ProjectStatus.OnHold    => "status-onhold",
+        ProjectStatus.Cancelled => "status-cancelled",
+        _ => ""
+    };
+}

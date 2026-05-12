@@ -58,6 +58,18 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xOb3RGb3VuZC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/GHADA/Desktop/Projet c\#/projet_c_sharp/Components/Pages/Projects/MyProjects/KanbanBoard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xQcm9qZWN0c1xNeVByb2plY3RzXEthbmJhbkJvYXJkLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/GHADA/Desktop/Projet c\#/projet_c_sharp/Components/Pages/Projects/MyProjects/MyProjects.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xQcm9qZWN0c1xNeVByb2plY3RzXE15UHJvamVjdHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/GHADA/Desktop/Projet c\#/projet_c_sharp/Components/Pages/Projects/MyProjects/ProjectCard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xQcm9qZWN0c1xNeVByb2plY3RzXFByb2plY3RDYXJkLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/GHADA/Desktop/Projet c\#/projet_c_sharp/Components/Pages/Projects/ProjectAdd.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xQcm9qZWN0c1xQcm9qZWN0QWRkLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
@@ -88,6 +100,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/GHADA/Desktop/Projet c\#/projet_c_sharp/Components/Pages/Tasks/TaskList.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xUYXNrc1xUYXNrTGlzdC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/GHADA/Desktop/Projet c\#/projet_c_sharp/Components/Pages/TestData.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xUZXN0RGF0YS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/GHADA/Desktop/Projet c\#/projet_c_sharp/Components/Routes.razor]

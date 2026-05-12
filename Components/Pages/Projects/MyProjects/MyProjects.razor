@@ -1,0 +1,87 @@
+@page "/my-projects"
+@using ProjectManager.Models
+@using ProjectManager.Services
+@inject IMyProjectsService MyProjectsService
+
+<PageTitle>Test Mes Projets</PageTitle>
+
+<div class="container mt-4">
+
+    <h1>Test GetProjectsByMemberAsync</h1>
+
+    <div class="mb-4">
+        <label class="form-label fw-bold">Sélectionnez un membre :</label>
+        <select class="form-select" @onchange="OnMemberSelected">
+            <option value="0">-- Choisir un membre --</option>
+            @foreach (var m in _members)
+            {
+                <option value="@m.Id">@m.FullName (@m.Role)</option>
+            }
+        </select>
+    </div>
+
+    @if (_selectedMember != null)
+    {
+        <h4>Résultat pour : <strong>@_selectedMember.FullName</strong> (ID: @_selectedMember.Id)</h4>
+        
+        <p><strong>Liaisons dans ProjectMember :</strong> @_projectCount</p>
+
+        @if (_projects.Count == 0)
+        {
+            <div class="alert alert-warning">
+                Aucun projet trouvé pour ce membre.
+            </div>
+        }
+        else
+        {
+            <h5>@_projects.Count projet(s) trouvé(s) :</h5>
+            <div class="row">
+                @foreach (var p in _projects)
+                {
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">@p.Name</h5>
+                                <p class="card-text">@p.Description</p>
+                                <p><strong>Statut :</strong> @p.Status</p>
+                                <p><strong>Tâches :</strong> @p.Tasks.Count</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private List<Member> _members = new();
+    private List<Project> _projects = new();
+    private Member? _selectedMember;
+    private int _projectCount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _members = await MyProjectsService.GetAllMembersAsync();
+    }
+
+    private async Task OnMemberSelected(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int memberId) && memberId > 0)
+        {
+            _selectedMember = await MyProjectsService.GetMemberByIdAsync(memberId);
+            _projectCount = await MyProjectsService.GetProjectMemberCountAsync(memberId);
+            _projects = await MyProjectsService.GetProjectsByMemberAsync(memberId);
+
+            Console.WriteLine($"Membre ID {memberId} → Liaisons: {_projectCount} | Projets chargés: {_projects.Count}");
+        }
+        else
+        {
+            _selectedMember = null;
+            _projects.Clear();
+            _projectCount = 0;
+        }
+
+        StateHasChanged();
+    }
+}

@@ -1,21 +1,10 @@
-
-@import 'base/_variables.css';
+/* Base */
 @import 'base/_reset.css';
-@import 'base/_typography.css';
+@import 'base/_variables.css';
 
+/* Components */
 @import 'components/_buttons.css';
-@import 'components/_cards.css';
-@import 'components/_forms.css';
-@import 'components/_tables.css';
-@import 'components/_modals.css';
 
-@import 'layouts/_header.css';
-@import 'layouts/_sidebar.css';
+/* Layouts */
 @import 'layouts/_main-layout.css';
-
-@import 'pages/_dashboard.css';
-@import 'pages/_members.css';
-@import 'pages/_projects.css';
-@import 'pages/_tasks.css';
-
-@import 'themes/_light.css';
+@import 'layouts/_sidebar.css';
