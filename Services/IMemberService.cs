@@ -11,4 +11,5 @@ public interface IMemberService
     Task DeleteAsync(int id);
     Task AddToProjectAsync(int memberId, int projectId);
     Task<List<Member>> GetByProjectAsync(int projectId);
+    Task<List<Member>> GetMembersByProjectAsync(int projectId);
 }
