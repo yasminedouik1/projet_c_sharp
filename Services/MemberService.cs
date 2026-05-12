@@ -82,4 +82,35 @@ public class MemberService : IMemberService
         .OrderBy(m => m.FullName)
         .ToListAsync();
 }
+
+public async Task AddMemberToProjectAsync(int projectId, int memberId)
+{
+    // Vérifier si la relation existe déjà
+    var exists = await _context.ProjectMembers
+        .AnyAsync(pm => pm.ProjectId == projectId && pm.MemberId == memberId);
+
+    if (exists)
+        return;
+
+    var projectMember = new ProjectMember
+    {
+        ProjectId = projectId,
+        MemberId = memberId
+    };
+
+    _context.ProjectMembers.Add(projectMember);
+    await _context.SaveChangesAsync();
+}
+
+public async Task RemoveMemberFromProjectAsync(int projectId, int memberId)
+{
+    var projectMember = await _context.ProjectMembers
+        .FirstOrDefaultAsync(pm => pm.ProjectId == projectId && pm.MemberId == memberId);
+
+    if (projectMember != null)
+    {
+        _context.ProjectMembers.Remove(projectMember);
+        await _context.SaveChangesAsync();
+    }
+}
 }
