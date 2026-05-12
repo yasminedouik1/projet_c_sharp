@@ -25,6 +25,22 @@
           "buildMultiTargeting/Microsoft.AspNetCore.App.Internal.Assets.targets": {}
         }
       },
+      "Microsoft.AspNetCore.Identity.EntityFrameworkCore/10.0.5": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore.Relational": "10.0.5"
+        },
+        "compile": {
+          "lib/net10.0/Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Microsoft.Build.Framework/18.0.2": {
         "type": "package",
         "compile": {
@@ -851,6 +867,22 @@
         "buildTransitive/Microsoft.AspNetCore.App.Internal.Assets.targets",
         "microsoft.aspnetcore.app.internal.assets.10.0.2.nupkg.sha512",
         "microsoft.aspnetcore.app.internal.assets.nuspec"
+      ]
+    },
+    "Microsoft.AspNetCore.Identity.EntityFrameworkCore/10.0.5": {
+      "sha512": "oo1uauTwgcnhYgituZ2nI3wJ8XN9z76ggu2zkOJu1BCfOOsqr+g08Kr4MOiMuXEhwySkpIV+MVoC25hC1288NA==",
+      "type": "package",
+      "path": "microsoft.aspnetcore.identity.entityframeworkcore/10.0.5",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "PACKAGE.md",
+        "THIRD-PARTY-NOTICES.TXT",
+        "lib/net10.0/Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll",
+        "lib/net10.0/Microsoft.AspNetCore.Identity.EntityFrameworkCore.xml",
+        "microsoft.aspnetcore.identity.entityframeworkcore.10.0.5.nupkg.sha512",
+        "microsoft.aspnetcore.identity.entityframeworkcore.nuspec"
       ]
     },
     "Microsoft.Build.Framework/18.0.2": {
@@ -2459,6 +2491,7 @@
   "projectFileDependencyGroups": {
     "net10.0": [
       "Microsoft.AspNetCore.App.Internal.Assets >= 10.0.2",
+      "Microsoft.AspNetCore.Identity.EntityFrameworkCore >= 10.0.5",
       "Microsoft.EntityFrameworkCore >= 10.0.5",
       "Microsoft.EntityFrameworkCore.Design >= 10.0.5",
       "Microsoft.EntityFrameworkCore.Sqlite >= 10.0.5",
@@ -2466,19 +2499,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\GHADA\\.nuget\\packages\\": {}
+    "C:\\Users\\yasmi\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\GHADA\\Desktop\\Projet c#\\projet_c_sharp\\ProjectManager.csproj",
+      "projectUniqueName": "C:\\Users\\yasmi\\Desktop\\projet c#\\ProjectManager\\ProjectManager.csproj",
       "projectName": "ProjectManager",
-      "projectPath": "C:\\Users\\GHADA\\Desktop\\Projet c#\\projet_c_sharp\\ProjectManager.csproj",
-      "packagesPath": "C:\\Users\\GHADA\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\GHADA\\Desktop\\Projet c#\\projet_c_sharp\\obj\\",
+      "projectPath": "C:\\Users\\yasmi\\Desktop\\projet c#\\ProjectManager\\ProjectManager.csproj",
+      "packagesPath": "C:\\Users\\yasmi\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\yasmi\\Desktop\\projet c#\\ProjectManager\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\GHADA\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\yasmi\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0"
@@ -2513,6 +2546,10 @@
             "target": "Package",
             "version": "[10.0.2, )",
             "autoReferenced": true
+          },
+          "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
+            "target": "Package",
+            "version": "[10.0.5, )"
           },
           "Microsoft.EntityFrameworkCore": {
             "target": "Package",

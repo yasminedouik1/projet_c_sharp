@@ -4,6 +4,8 @@ using ProjectManager.Data;
 using ProjectManager.Services;
 using ProjectManager.Models;
 using Microsoft.Extensions.FileProviders; 
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,8 +20,40 @@ builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IMemberService, MemberService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<IMyProjectsService, MyProjectsService>();
+
+
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+{
+    options.Password.RequireDigit = false;
+    options.Password.RequiredLength = 6;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+})
+.AddEntityFrameworkStores<AppDbContext>()
+.AddDefaultTokenProviders();
+
+builder.Services.AddCascadingAuthenticationState();
+
 var app = builder.Build();
 // Servir les fichiers statiques de wwwroot (existant)
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+
+    if (!await roleManager.RoleExistsAsync("Admin"))
+        await roleManager.CreateAsync(new IdentityRole("Admin"));
+
+    if (await userManager.FindByEmailAsync("admin@data.com") == null)
+    {
+        var adminUser = new IdentityUser { UserName = "admin@data.com", Email = "admin@data.com" };
+        var result = await userManager.CreateAsync(adminUser, "Admin123!");
+
+        if (result.Succeeded)
+            await userManager.AddToRoleAsync(adminUser, "Admin");
+    }
+}
+
 app.UseStaticFiles();
 
 // Servir les fichiers du dossier UI (NOUVEAU)
@@ -67,4 +101,23 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-app.Run();
+
+app.MapPost("/api/auth/login", async (
+    [FromServices] SignInManager<IdentityUser> signInManager,
+    [FromForm] string email, 
+    [FromForm] string password) =>
+{
+    var result = await signInManager.PasswordSignInAsync(email, password, isPersistent: false, lockoutOnFailure: false);
+    
+    if (result.Succeeded) return Results.Redirect("/dashboard");
+    
+    return Results.Redirect("/login?error=Invalid+credentials");
+}).DisableAntiforgery(); 
+
+app.MapPost("/api/auth/logout", async ([FromServices] SignInManager<IdentityUser> signInManager) =>
+{
+    await signInManager.SignOutAsync();
+    return Results.Redirect("/");
+}).DisableAntiforgery();
+
+app.Run(); 
