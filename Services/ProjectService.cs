@@ -17,7 +17,7 @@ public class ProjectService : IProjectService
     {
         return await _context.Projects
             .Include(p => p.Tasks)
-            .Include(p => p.Members)
+            .Include(p => p.ProjectUsers)
             .ToListAsync();
     }
 
@@ -25,8 +25,9 @@ public class ProjectService : IProjectService
     {
         return await _context.Projects
             .Include(p => p.Tasks)
-            .Include(p => p.Members)
-                .ThenInclude(pm => pm.Member)
+                .ThenInclude(t => t.AssignedUser)
+            .Include(p => p.ProjectUsers)
+                .ThenInclude(pu => pu.User)
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 
@@ -45,7 +46,7 @@ public class ProjectService : IProjectService
     public async Task DeleteAsync(int id)
     {
         var project = await _context.Projects.FindAsync(id);
-        if (project != null)
+        if (project is not null)
         {
             _context.Projects.Remove(project);
             await _context.SaveChangesAsync();
@@ -55,8 +56,8 @@ public class ProjectService : IProjectService
     public async Task<List<Project>> SearchAsync(string keyword)
     {
         return await _context.Projects
-            .Where(p => p.Name.Contains(keyword) || 
-                       (p.Description != null && p.Description.Contains(keyword)))
+            .Where(p => p.Name.Contains(keyword) ||
+                        (p.Description != null && p.Description.Contains(keyword)))
             .ToListAsync();
     }
 }

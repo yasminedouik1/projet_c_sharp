@@ -21,8 +21,9 @@ public class ProjectTask
     public int ProjectId { get; set; }
     public Project Project { get; set; } = null!;
 
-    public int? AssignedMemberId { get; set; }
-    public Member? AssignedMember { get; set; }
+    /// <summary>Identifiant Identity (<see cref="ApplicationUser.Id"/>).</summary>
+    public string? AssignedUserId { get; set; }
+    public ApplicationUser? AssignedUser { get; set; }
 }
 
 public enum TaskStatus { Todo, InProgress, Done }

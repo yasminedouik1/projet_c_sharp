@@ -21,8 +21,8 @@ public class Project
 
     public ProjectStatus Status { get; set; } = ProjectStatus.Active;
 
-    public ICollection<ProjectTask> Tasks   { get; set; } = new List<ProjectTask>();
-    public ICollection<ProjectMember> Members { get; set; } = new List<ProjectMember>();
+    public ICollection<ProjectTask> Tasks { get; set; } = new List<ProjectTask>();
+    public ICollection<ProjectUser> ProjectUsers { get; set; } = new List<ProjectUser>();
 }
 
 public enum ProjectStatus { Active, Completed, OnHold, Cancelled }

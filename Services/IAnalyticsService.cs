@@ -1,5 +1,3 @@
-using ProjectManager.Models;
-
 namespace ProjectManager.Services;
 
 public interface IAnalyticsService
@@ -8,7 +6,7 @@ public interface IAnalyticsService
     Task<int> GetCompletedTasksCountAsync(int projectId);
     Task<int> GetOverdueTasksCountAsync(int projectId);
 
-    Task<double> GetMemberCompletionRateAsync(int memberId);
-    Task<int> GetMemberWorkloadAsync(int memberId);
-    Task<int> GetMemberOverdueCountAsync(int memberId);
+    Task<double> GetUserCompletionRateAsync(string userId);
+    Task<int> GetUserWorkloadAsync(string userId);
+    Task<int> GetUserOverdueCountAsync(string userId);
 }

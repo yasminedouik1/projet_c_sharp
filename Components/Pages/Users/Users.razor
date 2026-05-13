@@ -1,0 +1,221 @@
+@page "/users"
+@attribute [Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
+
+@using ProjectManager.Models
+@using ProjectManager.Services
+
+@inject IUserProjectService UserProjectService
+@inject IProjectService ProjectService
+
+<PageTitle>Utilisateurs</PageTitle>
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
+    <div>
+        <h1 class="h2 mb-1">Utilisateurs inscrits</h1>
+        <p class="text-muted mb-0 small">
+            Comptes avec le rôle <strong>User</strong> (hors administrateurs). Chaque inscription est automatiquement listée ici.
+            Affectation aux projets via <code>IUserProjectService</code>.
+        </p>
+    </div>
+</div>
+
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        @if (_loading)
+        {
+            <p class="text-muted"><em>Chargement…</em></p>
+        }
+        else
+        {
+            <div class="table-responsive card border-0 shadow-sm mb-4">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nom affiché</th>
+                            <th>Email</th>
+                            <th class="text-center">Projets</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var u in _users)
+                        {
+                            <tr>
+                                <td class="align-middle">@(u.DisplayName ?? "—")</td>
+                                <td class="align-middle"><code class="small">@u.Email</code></td>
+                                <td class="align-middle text-center">
+                                    <span class="badge bg-secondary">@(_projectCounts.GetValueOrDefault(u.Id, 0))</span>
+                                </td>
+                                <td class="align-middle text-end">
+                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                            @onclick="() => OpenAssign(u)">
+                                        Affecter à un projet
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (_users.Count == 0)
+            {
+                <div class="alert alert-light border">Aucun utilisateur avec le rôle « User ».</div>
+            }
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-semibold">
+                    Affectation rapide
+                </div>
+                <div class="card-body row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label">Utilisateur</label>
+                        <select class="form-select" @bind="_quickUserId">
+                            <option value="">— Choisir —</option>
+                            @foreach (var u in _users)
+                            {
+                                <option value="@u.Id">@(u.DisplayName ?? u.Email)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Projet</label>
+                        <select class="form-select" @bind="_quickProjectId">
+                            <option value="0">— Choisir —</option>
+                            @foreach (var p in _allProjects)
+                            {
+                                <option value="@p.Id">@p.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex gap-2">
+                        <button type="button" class="btn btn-primary" @onclick="QuickAdd" disabled="@(_quickProjectId == 0 || string.IsNullOrEmpty(_quickUserId))">
+                            Ajouter au projet
+                        </button>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(_banner))
+                {
+                    <div class="card-footer"><small class="text-muted">@_banner</small></div>
+                }
+            </div>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <div class="alert alert-warning">Réservé aux administrateurs.</div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@if (_assignUser is not null)
+{
+    <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,.45);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Projets de @(_assignUser.DisplayName ?? _assignUser.Email)</h5>
+                    <button type="button" class="btn-close" @onclick="CloseAssign"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted">Retirer ou ajouter ce compte à des projets.</p>
+                    <ul class="list-group mb-3">
+                        @foreach (var p in _assignUserProjects)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                @p.Name
+                                <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => RemoveFromProject(p.Id)">Retirer</button>
+                            </li>
+                        }
+                    </ul>
+                    @if (_assignUserProjects.Count == 0)
+                    {
+                        <p class="text-muted small">Aucun projet pour l’instant.</p>
+                    }
+                    <div class="d-flex gap-2 flex-wrap">
+                        <select class="form-select" style="max-width: 220px;" @bind="_modalProjectId">
+                            <option value="0">Ajouter à…</option>
+                            @foreach (var p in _allProjects.Where(p => _assignUserProjects.All(x => x.Id != p.Id)))
+                            {
+                                <option value="@p.Id">@p.Name</option>
+                            }
+                        </select>
+                        <button type="button" class="btn btn-success btn-sm" @onclick="ModalAdd" disabled="@(_modalProjectId == 0)">Ajouter</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _loading = true;
+    private List<ApplicationUser> _users = new();
+    private List<Project> _allProjects = new();
+    private readonly Dictionary<string, int> _projectCounts = new();
+
+    private string _quickUserId = "";
+    private int _quickProjectId;
+    private string? _banner;
+
+    private ApplicationUser? _assignUser;
+    private List<Project> _assignUserProjects = new();
+    private int _modalProjectId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _users = (await UserProjectService.GetDirectoryUsersAsync()).ToList();
+        _allProjects = await ProjectService.GetAllAsync();
+
+        foreach (var u in _users)
+            _projectCounts[u.Id] = await UserProjectService.GetUserProjectCountAsync(u.Id);
+
+        _loading = false;
+    }
+
+    private async Task QuickAdd()
+    {
+        _banner = null;
+        if (_quickProjectId == 0 || string.IsNullOrEmpty(_quickUserId)) return;
+
+        await UserProjectService.AddUserToProjectAsync(_quickProjectId, _quickUserId);
+        _projectCounts[_quickUserId] = await UserProjectService.GetUserProjectCountAsync(_quickUserId);
+        _banner = "Utilisateur ajouté au projet.";
+        _quickProjectId = 0;
+    }
+
+    private async Task OpenAssign(ApplicationUser u)
+    {
+        _assignUser = u;
+        _modalProjectId = 0;
+        await RefreshAssignProjects();
+    }
+
+    private void CloseAssign()
+    {
+        _assignUser = null;
+        _assignUserProjects = new();
+    }
+
+    private async Task RefreshAssignProjects()
+    {
+        if (_assignUser is null) return;
+        _assignUserProjects = (await UserProjectService.GetProjectsForUserAsync(_assignUser.Id)).ToList();
+    }
+
+    private async Task RemoveFromProject(int projectId)
+    {
+        if (_assignUser is null) return;
+        await UserProjectService.RemoveUserFromProjectAsync(projectId, _assignUser.Id);
+        _projectCounts[_assignUser.Id] = await UserProjectService.GetUserProjectCountAsync(_assignUser.Id);
+        await RefreshAssignProjects();
+    }
+
+    private async Task ModalAdd()
+    {
+        if (_assignUser is null || _modalProjectId == 0) return;
+        await UserProjectService.AddUserToProjectAsync(_modalProjectId, _assignUser.Id);
+        _projectCounts[_assignUser.Id] = await UserProjectService.GetUserProjectCountAsync(_assignUser.Id);
+        _modalProjectId = 0;
+        await RefreshAssignProjects();
+    }
+}

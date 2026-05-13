@@ -3,38 +3,42 @@
 @rendermode InteractiveServer
 @using ProjectManager.Models
 @using ProjectManager.Services
-@inject IMemberService MemberService
+@inject IUserProjectService UserProjectService
 @inject NavigationManager NavManager
 
 <PageTitle>Membres du projet</PageTitle>
 
-<h1>Affecter des membres</h1>
+<h1 class="h3 mb-3">Affecter des utilisateurs</h1>
 
-<h4>Membres déjà dans le projet</h4>
-@if (_projectMembers.Count == 0)
+<h4 class="h6 text-muted">Utilisateurs dans le projet</h4>
+@if (_projectUsers.Count == 0)
 {
-    <p>Aucun membre affecté.</p>
+    <p>Aucun utilisateur affecté.</p>
 }
 else
 {
-    <ul class="list-group mb-3">
-        @foreach (var m in _projectMembers)
+    <ul class="list-group mb-4">
+        @foreach (var u in _projectUsers)
         {
-            <li class="list-group-item">@m.FullName — @(m.Role ?? "—")</li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>@(u.DisplayName ?? u.Email)</span>
+                <button type="button" class="btn btn-sm btn-outline-danger"
+                        @onclick="() => Remove(u.Id)">Retirer</button>
+            </li>
         }
     </ul>
 }
 
-<h4>Ajouter un membre</h4>
-<div class="d-flex gap-2 mb-3">
-    <select class="form-select" @bind="_selectedMemberId">
-        <option value="0">-- Choisir un membre --</option>
-        @foreach (var m in _allMembers)
+<h4 class="h6 text-muted">Ajouter un utilisateur</h4>
+<div class="d-flex gap-2 mb-3 flex-wrap">
+    <select class="form-select" style="max-width: 360px;" @bind="_selectedUserId">
+        <option value="">-- Choisir un utilisateur --</option>
+        @foreach (var u in _directoryUsers.Where(u => !_projectUsers.Any(p => p.Id == u.Id)))
         {
-            <option value="@m.Id">@m.FullName</option>
+            <option value="@u.Id">@(u.DisplayName ?? u.Email)</option>
         }
     </select>
-    <button class="btn btn-primary" @onclick="AddMember">Affecter</button>
+    <button type="button" class="btn btn-primary" @onclick="AddUser">Affecter</button>
 </div>
 
 @if (_message != null)
@@ -42,35 +46,42 @@ else
     <div class="alert alert-info">@_message</div>
 }
 
-<button class="btn btn-secondary" @onclick="GoBack">
-    Retour
-</button>
+<button type="button" class="btn btn-secondary" @onclick="GoBack">Retour au projet</button>
 
 @code {
     [Parameter] public int ProjectId { get; set; }
-    private void GoBack() => NavManager.NavigateTo("/projects/" + ProjectId);
-    private List<Member> _allMembers = new();
-    private List<Member> _projectMembers = new();
-    private int _selectedMemberId = 0;
+
+    private List<ApplicationUser> _directoryUsers = new();
+    private List<ApplicationUser> _projectUsers = new();
+    private string _selectedUserId = "";
     private string? _message;
 
     protected override async Task OnInitializedAsync()
     {
-        _allMembers = await MemberService.GetAllAsync();
-        _projectMembers = await MemberService.GetByProjectAsync(ProjectId);
+        _directoryUsers = (await UserProjectService.GetDirectoryUsersAsync()).ToList();
+        _projectUsers = (await UserProjectService.GetUsersInProjectAsync(ProjectId)).ToList();
     }
 
-    private async Task AddMember()
+    private async Task AddUser()
     {
-        if (_selectedMemberId == 0)
+        if (string.IsNullOrEmpty(_selectedUserId))
         {
-            _message = "Veuillez choisir un membre.";
+            _message = "Veuillez choisir un utilisateur.";
             return;
         }
 
-        await MemberService.AddToProjectAsync(_selectedMemberId, ProjectId);
-        _projectMembers = await MemberService.GetByProjectAsync(ProjectId);
-        _message = "Membre ajouté avec succès.";
-        _selectedMemberId = 0;
+        await UserProjectService.AddUserToProjectAsync(ProjectId, _selectedUserId);
+        _projectUsers = (await UserProjectService.GetUsersInProjectAsync(ProjectId)).ToList();
+        _message = "Utilisateur ajouté au projet.";
+        _selectedUserId = "";
     }
+
+    private async Task Remove(string userId)
+    {
+        await UserProjectService.RemoveUserFromProjectAsync(ProjectId, userId);
+        _projectUsers = (await UserProjectService.GetUsersInProjectAsync(ProjectId)).ToList();
+        _message = "Utilisateur retiré du projet.";
+    }
+
+    private void GoBack() => NavManager.NavigateTo("/projects/" + ProjectId);
 }

@@ -4,57 +4,54 @@
 @using ProjectManager.Services
 @using ProjectManager.Data
 @using Microsoft.EntityFrameworkCore
-@inject IMyProjectsService MyProjectsService
 @inject AppDbContext Db
 
 <PageTitle>Test Données</PageTitle>
 
 <div class="container mt-4">
-    <h1>Test Base de données - ProjectMembers</h1>
+    <h1>Test base — ProjectUsers</h1>
 
-    <button class="btn btn-primary mb-3" @onclick="CheckData">
-        🔄 Vérifier les données dans ProjectMembers
+    <button class="btn btn-primary mb-3" type="button" @onclick="CheckData">
+        Vérifier les liaisons Projet ↔ Utilisateur
     </button>
 
     <hr />
 
-    <h4>Résultat :</h4>
-    <pre style="background:#f8f9fa; padding:15px; border-radius:8px;">@result</pre>
+    <h4>Résultat</h4>
+    <pre class="bg-light p-3 rounded small">@result</pre>
 </div>
 
 @code {
-    private string result = "Clique sur le bouton pour vérifier...";
+    private string result = "Cliquez sur le bouton pour vérifier…";
 
     private async Task CheckData()
     {
         try
         {
-            var members = await MyProjectsService.GetAllMembersAsync();
-
-            var projectMembers = await Db.ProjectMembers
-                .Include(pm => pm.Project)
-                .Include(pm => pm.Member)
+            var links = await Db.ProjectUsers
+                .Include(pu => pu.Project)
+                .Include(pu => pu.User)
+                .AsNoTracking()
                 .ToListAsync();
 
-            result = $"✅ Membres totaux : {members.Count}\n";
-            result += $"📊 Liaisons dans ProjectMembers : {projectMembers.Count}\n\n";
+            result = $"Liaisons ProjectUsers : {links.Count}\n\n";
 
-            if (projectMembers.Count == 0)
+            if (links.Count == 0)
             {
-                result += "❌ AUCUNE donnée trouvée dans la table ProjectMembers !\n\n";
-                result += "Tu dois d'abord affecter des membres à des projets.";
+                result += "Aucune liaison. Ajoutez des utilisateurs à des projets depuis la page Utilisateurs ou le détail projet.";
             }
             else
             {
-                foreach (var pm in projectMembers)
+                foreach (var pu in links)
                 {
-                    result += $"• Projet : {pm.Project.Name}  ←  Membre : {pm.Member.FullName}\n";
+                    var name = pu.User?.DisplayName ?? pu.User?.Email ?? pu.UserId;
+                    result += $"• {pu.Project?.Name} ← {name}\n";
                 }
             }
         }
         catch (Exception ex)
         {
-            result = $"❌ ERREUR : {ex.Message}";
+            result = $"Erreur : {ex.Message}";
         }
 
         StateHasChanged();

@@ -6,7 +6,7 @@
 @using ProjectManager.Services
 
 @inject IProjectService ProjectService
-@inject IMemberService MemberService
+@inject IUserProjectService UserProjectService
 @inject IAnalyticsService AnalyticsService
 
 <PageTitle>Tableau de bord</PageTitle>
@@ -42,8 +42,8 @@ else
         </div>
         <div class="col-md-3">
             <div class="card text-center p-3">
-                <h6 class="text-muted">Total membres</h6>
-                <h2>@_totalMembers</h2>
+                <h6 class="text-muted">Utilisateurs (rôle User)</h6>
+                <h2>@_totalUsers</h2>
             </div>
         </div>
         <div class="col-md-3">
@@ -109,12 +109,12 @@ else
         </tbody>
     </table>
 
-    <!-- ====================== PERFORMANCE DES MEMBRES ====================== -->
-    <h4 class="mt-5">Performance des membres</h4>
+    <!-- ====================== PERFORMANCE DES UTILISATEURS ====================== -->
+    <h4 class="mt-5">Performance des utilisateurs</h4>
 
     <div class="mb-3">
         <select class="form-select w-auto" @bind="_selectedMemberStatusFilter">
-            <option value="All">Tous les membres</option>
+            <option value="All">Tous les utilisateurs</option>
             <option value="Performant">Performant</option>
             <option value="Surveiller">À surveiller</option>
             <option value="Difficulte">En difficulté</option>
@@ -124,7 +124,7 @@ else
     <table class="table table-striped">
         <thead>
             <tr>
-                <th>Membre</th>
+                <th>Utilisateur</th>
                 <th>Taux de complétion</th>
                 <th>Charge de travail</th>
                 <th>Retard</th>
@@ -160,7 +160,7 @@ else
     private bool _isLoading = true;
 
     private int _activeProjects;
-    private int _totalMembers;
+    private int _totalUsers;
     private int _totalOverdue;
     private int _totalCompleted;
 
@@ -185,10 +185,10 @@ else
         _isLoading = true;
 
         var projects = await ProjectService.GetAllAsync();
-        var members = await MemberService.GetAllAsync();
+        var directoryUsers = (await UserProjectService.GetDirectoryUsersAsync()).ToList();
 
         _activeProjects = projects.Count(p => p.Status == ProjectStatus.Active);
-        _totalMembers = members.Count;
+        _totalUsers = directoryUsers.Count;
         _totalCompleted = projects.Sum(p => p.Tasks.Count(t => t.Status == Models.TaskStatus.Done));
         _totalOverdue = projects.Sum(p => p.Tasks.Count(t => t.DueDate < DateTime.Now && t.Status != Models.TaskStatus.Done));
 
@@ -209,23 +209,23 @@ else
             });
         }
 
-        await LoadMemberStatsAsync(members);
+        await LoadMemberStatsAsync(directoryUsers);
 
         _isLoading = false;
     }
 
-    private async Task LoadMemberStatsAsync(List<Member> members)
+    private async Task LoadMemberStatsAsync(List<ApplicationUser> users)
     {
         _memberStats.Clear();
-        foreach (var member in members)
+        foreach (var user in users)
         {
-            var rate = await AnalyticsService.GetMemberCompletionRateAsync(member.Id);
-            var workload = await AnalyticsService.GetMemberWorkloadAsync(member.Id);
-            var overdue = await AnalyticsService.GetMemberOverdueCountAsync(member.Id);
+            var rate = await AnalyticsService.GetUserCompletionRateAsync(user.Id);
+            var workload = await AnalyticsService.GetUserWorkloadAsync(user.Id);
+            var overdue = await AnalyticsService.GetUserOverdueCountAsync(user.Id);
 
             _memberStats.Add(new MemberStatViewModel
             {
-                FullName = member.FullName,
+                FullName = user.DisplayName ?? user.Email ?? user.UserName ?? user.Id,
                 CompletionRate = rate,
                 Workload = workload,
                 OverdueCount = overdue

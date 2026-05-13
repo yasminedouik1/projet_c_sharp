@@ -16,7 +16,7 @@ public class TaskService : ITaskService
     public async Task<List<ProjectTask>> GetAllByProjectAsync(int projectId)
     {
         return await _context.Tasks
-            .Include(t => t.AssignedMember)
+            .Include(t => t.AssignedUser)
             .Where(t => t.ProjectId == projectId)
             .ToListAsync();
     }
@@ -24,7 +24,7 @@ public class TaskService : ITaskService
     public async Task<ProjectTask?> GetByIdAsync(int id)
     {
         return await _context.Tasks
-            .Include(t => t.AssignedMember)
+            .Include(t => t.AssignedUser)
             .Include(t => t.Project)
             .FirstOrDefaultAsync(t => t.Id == id);
     }
@@ -44,7 +44,7 @@ public class TaskService : ITaskService
     public async Task DeleteAsync(int id)
     {
         var task = await _context.Tasks.FindAsync(id);
-        if (task != null)
+        if (task is not null)
         {
             _context.Tasks.Remove(task);
             await _context.SaveChangesAsync();
@@ -55,9 +55,9 @@ public class TaskService : ITaskService
     {
         return await _context.Tasks
             .Include(t => t.Project)
-            .Include(t => t.AssignedMember)
-            .Where(t => t.DueDate < DateTime.Now && 
-                       t.Status != Models.TaskStatus.Done)
+            .Include(t => t.AssignedUser)
+            .Where(t => t.DueDate < DateTime.Now &&
+                        t.Status != Models.TaskStatus.Done)
             .ToListAsync();
     }
 }

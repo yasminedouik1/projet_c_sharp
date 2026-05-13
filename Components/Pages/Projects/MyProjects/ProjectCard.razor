@@ -17,7 +17,7 @@
     </div>
 
     <KanbanBoard ProjectId="Project.Id"
-                 MemberId="MemberId"
+                 UserId="@UserId"
                  OnTaskStatusChanged="OnTaskStatusChanged" />
 </div>
 
@@ -82,19 +82,15 @@
 
 @code {
     [Parameter] public Project Project { get; set; } = null!;
-    [Parameter] public int MemberId { get; set; }
+    [Parameter] public string UserId { get; set; } = "";
     [Parameter] public EventCallback OnTaskStatusChanged { get; set; }
 
-    private string GetStatusClass(ProjectStatus status) => status switch
+    private static string GetStatusClass(ProjectStatus status) => status switch
     {
-        ProjectStatus.Active    => "status-active",
+        ProjectStatus.Active => "status-active",
         ProjectStatus.Completed => "status-completed",
-        ProjectStatus.OnHold    => "status-onhold",
+        ProjectStatus.OnHold => "status-onhold",
         ProjectStatus.Cancelled => "status-cancelled",
         _ => ""
     };
-    protected override async Task OnParametersSetAsync()
-    {
-    // Optional: you can add loading state here if you want
-    }
 }

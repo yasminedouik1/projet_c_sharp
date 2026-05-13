@@ -13,12 +13,11 @@ public class AnalyticsService : IAnalyticsService
         _context = context;
     }
 
-
     public async Task<int> GetCompletedTasksCountAsync(int projectId)
     {
         return await _context.Tasks
             .Where(t => t.ProjectId == projectId &&
-                       t.Status == Models.TaskStatus.Done)
+                        t.Status == Models.TaskStatus.Done)
             .CountAsync();
     }
 
@@ -26,8 +25,8 @@ public class AnalyticsService : IAnalyticsService
     {
         return await _context.Tasks
             .Where(t => t.ProjectId == projectId &&
-                       t.DueDate < DateTime.Now &&
-                       t.Status != Models.TaskStatus.Done)
+                        t.DueDate < DateTime.Now &&
+                        t.Status != Models.TaskStatus.Done)
             .CountAsync();
     }
 
@@ -40,45 +39,45 @@ public class AnalyticsService : IAnalyticsService
         if (total == 0) return 0;
 
         var completed = await GetCompletedTasksCountAsync(projectId);
-        var overdue   = await GetOverdueTasksCountAsync(projectId);
+        var overdue = await GetOverdueTasksCountAsync(projectId);
 
         double completionRate = (double)completed / total;
-        double delayRate      = (double)overdue / total;
+        double delayRate = (double)overdue / total;
 
         double score = (completionRate * 0.6) + ((1 - delayRate) * 0.4);
         return Math.Round(score * 100, 1);
     }
-   
-public async Task<double> GetMemberCompletionRateAsync(int memberId)
-{
-    var total = await _context.Tasks
-        .Where(t => t.AssignedMemberId == memberId)
-        .CountAsync();
 
-    if (total == 0) return 0;
+    public async Task<double> GetUserCompletionRateAsync(string userId)
+    {
+        var total = await _context.Tasks
+            .Where(t => t.AssignedUserId == userId)
+            .CountAsync();
 
-    var done = await _context.Tasks
-        .Where(t => t.AssignedMemberId == memberId &&
-                   t.Status == Models.TaskStatus.Done)
-        .CountAsync();
+        if (total == 0) return 0;
 
-    return Math.Round((double)done / total * 100, 1);
-}
+        var done = await _context.Tasks
+            .Where(t => t.AssignedUserId == userId &&
+                        t.Status == Models.TaskStatus.Done)
+            .CountAsync();
 
-public async Task<int> GetMemberWorkloadAsync(int memberId)
-{
-    return await _context.Tasks
-        .Where(t => t.AssignedMemberId == memberId &&
-                   t.Status != Models.TaskStatus.Done)
-        .CountAsync();
-}
+        return Math.Round((double)done / total * 100, 1);
+    }
 
-public async Task<int> GetMemberOverdueCountAsync(int memberId)
-{
-    return await _context.Tasks
-        .Where(t => t.AssignedMemberId == memberId &&
-                   t.DueDate < DateTime.Now &&
-                   t.Status != Models.TaskStatus.Done)
-        .CountAsync();
-}
+    public async Task<int> GetUserWorkloadAsync(string userId)
+    {
+        return await _context.Tasks
+            .Where(t => t.AssignedUserId == userId &&
+                        t.Status != Models.TaskStatus.Done)
+            .CountAsync();
+    }
+
+    public async Task<int> GetUserOverdueCountAsync(string userId)
+    {
+        return await _context.Tasks
+            .Where(t => t.AssignedUserId == userId &&
+                        t.DueDate < DateTime.Now &&
+                        t.Status != Models.TaskStatus.Done)
+            .CountAsync();
+    }
 }

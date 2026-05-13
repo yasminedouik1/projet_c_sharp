@@ -6,19 +6,18 @@
 
 @inject IMyProjectsService MyProjectsService
 @inject AuthenticationStateProvider AuthStateProvider
-@inject NavigationManager Navigation
 
-<h3>Mes Projets</h3>
+<h3 class="mb-3">Mes projets</h3>
 
 @if (projects == null)
 {
-    <p><em>Chargement des projets...</em></p>
+    <p><em>Chargement des projets…</em></p>
 }
 else if (projects.Count == 0)
 {
     <div class="alert alert-info">
         <i class="bi bi-info-circle me-2"></i>
-        Pas de projets assignés pour le moment.
+        Pas de projets assignés pour le moment. Un administrateur doit vous ajouter à un projet.
     </div>
 }
 else
@@ -27,8 +26,8 @@ else
         @foreach (var project in projects)
         {
             <div class="col-md-6 col-lg-4 mb-4">
-                <ProjectCard Project="project" 
-                             MemberId="currentMemberId" 
+                <ProjectCard Project="project"
+                             UserId="@currentUserId"
                              OnTaskStatusChanged="RefreshProjects" />
             </div>
         }
@@ -36,8 +35,8 @@ else
 }
 
 @code {
-    private List<Project> projects = new();
-    private int currentMemberId = 0;
+    private List<Project>? projects;
+    private string currentUserId = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -47,25 +46,22 @@ else
     private async Task LoadMyProjects()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var email = authState.User.FindFirst(ClaimTypes.Email)?.Value;
+        currentUserId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
 
-        if (string.IsNullOrEmpty(email))
-            return;
-
-        var member = await MyProjectsService.GetMemberByEmailAsync(email);
-
-        if (member != null)
+        if (string.IsNullOrEmpty(currentUserId))
         {
-            currentMemberId = member.Id;
-            projects = await MyProjectsService.GetProjectsByMemberAsync(currentMemberId);
+            projects = new();
+            return;
         }
+
+        projects = await MyProjectsService.GetProjectsByUserIdAsync(currentUserId);
     }
 
     private async Task RefreshProjects()
     {
-        if (currentMemberId > 0)
+        if (!string.IsNullOrEmpty(currentUserId))
         {
-            projects = await MyProjectsService.GetProjectsByMemberAsync(currentMemberId);
+            projects = await MyProjectsService.GetProjectsByUserIdAsync(currentUserId);
             StateHasChanged();
         }
     }

@@ -2,10 +2,10 @@ using ProjectManager.Components;
 using Microsoft.EntityFrameworkCore;
 using ProjectManager.Data;
 using ProjectManager.Services;
-using ProjectManager.Models;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using ProjectManager.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,21 +18,21 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
-builder.Services.AddScoped<IMemberService, MemberService>();
+builder.Services.AddScoped<IUserProjectService, UserProjectService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<IMyProjectsService, MyProjectsService>();
 
 // ====================== IDENTITY ======================
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
-{
-    options.Password.RequireDigit = true;
-    options.Password.RequiredLength = 6;
-    options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireLowercase = true;
-})
-.AddEntityFrameworkStores<AppDbContext>()
-.AddDefaultTokenProviders();
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+    {
+        options.Password.RequireDigit = true;
+        options.Password.RequiredLength = 6;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireLowercase = true;
+    })
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -49,16 +49,14 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-    // Rôles Identity : Admin (back-office), User (comptes « membres » de l'application)
     foreach (var roleName in new[] { "Admin", "User" })
     {
         if (!await roleManager.RoleExistsAsync(roleName))
             await roleManager.CreateAsync(new IdentityRole(roleName));
     }
 
-    // Ancien nom de rôle « Member » → « User » (mise à jour silencieuse des comptes existants)
     if (await roleManager.RoleExistsAsync("Member"))
     {
         var memberRole = await roleManager.FindByNameAsync("Member");
@@ -73,15 +71,15 @@ using (var scope = app.Services.CreateScope())
             await roleManager.DeleteAsync(memberRole);
     }
 
-    // Création du compte Admin par défaut
     var adminEmail = "admin@projectmanager.com";
     if (await userManager.FindByEmailAsync(adminEmail) == null)
     {
-        var adminUser = new IdentityUser
+        var adminUser = new ApplicationUser
         {
             UserName = adminEmail,
             Email = adminEmail,
-            EmailConfirmed = true
+            EmailConfirmed = true,
+            DisplayName = "Administrateur"
         };
 
         var result = await userManager.CreateAsync(adminUser, "Admin123!");
@@ -109,8 +107,8 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
-app.UseAuthentication();      // ← Important
-app.UseAuthorization();       // ← Important
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseAntiforgery();
 
 // ====================== ROUTES ======================
@@ -120,9 +118,8 @@ app.MapRazorComponents<App>()
 
 // ====================== AUTH ENDPOINTS ======================
 
-// Login
 app.MapPost("/api/auth/login", async (
-    [FromServices] SignInManager<IdentityUser> signInManager,
+    [FromServices] SignInManager<ApplicationUser> signInManager,
     [FromForm] string email,
     [FromForm] string password) =>
 {
@@ -140,10 +137,10 @@ app.MapPost("/api/auth/login", async (
     return Results.Redirect("/login?error=Invalid+credentials");
 }).DisableAntiforgery();
 
-// Register
+// Inscription : ApplicationUser + rôle User → visible dans l’annuaire admin (pas de table Member).
 app.MapPost("/api/auth/register", async (
-    [FromServices] UserManager<IdentityUser> userManager,
-    [FromServices] SignInManager<IdentityUser> signInManager,
+    [FromServices] UserManager<ApplicationUser> userManager,
+    [FromServices] SignInManager<ApplicationUser> signInManager,
     [FromForm] string email,
     [FromForm] string fullName,
     [FromForm] string password,
@@ -156,11 +153,12 @@ app.MapPost("/api/auth/register", async (
     if (existingUser != null)
         return Results.Redirect("/register?error=Cet+email+existe+déjà");
 
-    var newUser = new IdentityUser
+    var newUser = new ApplicationUser
     {
         UserName = email,
         Email = email,
-        EmailConfirmed = true
+        EmailConfirmed = true,
+        DisplayName = string.IsNullOrWhiteSpace(fullName) ? null : fullName.Trim()
     };
 
     var result = await userManager.CreateAsync(newUser, password);
@@ -177,8 +175,7 @@ app.MapPost("/api/auth/register", async (
     return Results.Redirect($"/register?error={Uri.EscapeDataString(errors)}");
 }).DisableAntiforgery();
 
-// Logout
-app.MapPost("/api/auth/logout", async ([FromServices] SignInManager<IdentityUser> signInManager) =>
+app.MapPost("/api/auth/logout", async ([FromServices] SignInManager<ApplicationUser> signInManager) =>
 {
     await signInManager.SignOutAsync();
     return Results.Redirect("/login");

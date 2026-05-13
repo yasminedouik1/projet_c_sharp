@@ -13,39 +13,24 @@ public class MyProjectsService : IMyProjectsService
         _db = db;
     }
 
-    public async Task<List<Member>> GetAllMembersAsync()
+    public async Task<List<Project>> GetProjectsByUserIdAsync(string userId)
     {
-        return await _db.Members
-            .OrderBy(m => m.FullName)
+        return await _db.Projects
+            .AsNoTracking()
+            .Where(p => p.ProjectUsers.Any(pu => pu.UserId == userId))
+            .Include(p => p.Tasks)
             .ToListAsync();
     }
 
-    public async Task<Member?> GetMemberByIdAsync(int memberId)
-    {
-        return await _db.Members.FindAsync(memberId);
-    }
-
-public async Task<List<Project>> GetProjectsByMemberAsync(int memberId)
-{
-    return await _db.ProjectMembers
-        .Where(pm => pm.MemberId == memberId)
-        .Include(pm => pm.Project)        
-            .ThenInclude(p => p.Tasks)    
-        .Select(pm => pm.Project)         
-        .AsNoTracking()
-        .ToListAsync();
-}
-
-    public async Task<List<ProjectTask>> GetTasksByMemberAndProjectAsync(int memberId, int projectId)
+    public async Task<List<ProjectTask>> GetTasksByUserAndProjectAsync(string userId, int projectId)
     {
         return await _db.Tasks
-            .Where(t => t.ProjectId == projectId && t.AssignedMemberId == memberId)
+            .Where(t => t.ProjectId == projectId && t.AssignedUserId == userId)
             .OrderBy(t => t.DueDate)
             .AsNoTracking()
             .ToListAsync();
     }
 
-    // Correction ici : utilisation de Models.TaskStatus pour correspondre à l'interface
     public async Task UpdateTaskStatusAsync(int taskId, Models.TaskStatus newStatus)
     {
         var task = await _db.Tasks.FindAsync(taskId);
@@ -55,19 +40,4 @@ public async Task<List<Project>> GetProjectsByMemberAsync(int memberId)
             await _db.SaveChangesAsync();
         }
     }
-    // Ajoute cette méthode pour debug
-public async Task<int> GetProjectMemberCountAsync(int memberId)
-{
-    return await _db.ProjectMembers
-        .Where(pm => pm.MemberId == memberId)
-        .CountAsync();
-}
-public async Task<Member?> GetMemberByEmailAsync(string email)
-{
-    if (string.IsNullOrEmpty(email))
-        return null;
-
-    return await _db.Members
-        .FirstOrDefaultAsync(m => m.Email.ToLower() == email.ToLower());
-}
 }

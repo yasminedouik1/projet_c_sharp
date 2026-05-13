@@ -46,16 +46,8 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xMb2dpbi5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/yasmi/Desktop/projet c\#/ProjectManager/Components/Pages/Members/MemberAdd.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xNZW1iZXJzXE1lbWJlckFkZC5yYXpvcg==
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/yasmi/Desktop/projet c\#/ProjectManager/Components/Pages/Members/MemberEdit.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xNZW1iZXJzXE1lbWJlckVkaXQucmF6b3I=
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/yasmi/Desktop/projet c\#/ProjectManager/Components/Pages/Members/Members.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xNZW1iZXJzXE1lbWJlcnMucmF6b3I=
+[C:/Users/yasmi/Desktop/projet c\#/ProjectManager/Components/Pages/Members/MembersRedirect.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xNZW1iZXJzXE1lbWJlcnNSZWRpcmVjdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/yasmi/Desktop/projet c\#/ProjectManager/Components/Pages/NotFound.razor]
@@ -112,6 +104,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/yasmi/Desktop/projet c\#/ProjectManager/Components/Pages/TestData.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xUZXN0RGF0YS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/yasmi/Desktop/projet c\#/ProjectManager/Components/Pages/Users/Users.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xVc2Vyc1xVc2Vycy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/yasmi/Desktop/projet c\#/ProjectManager/Components/Routes.razor]

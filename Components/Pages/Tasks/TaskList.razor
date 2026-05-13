@@ -4,7 +4,6 @@
 @using ProjectManager.Models
 @using ProjectManager.Services
 @inject ITaskService TaskService
-@inject IMemberService MemberService
 @inject NavigationManager NavManager
 
 <PageTitle>Tâches</PageTitle>
@@ -46,7 +45,7 @@ else
                             @task.Status
                         </span>
                     </td>
-                    <td>@(task.AssignedMember?.FullName ?? "Non assigné")</td>
+                    <td>@(task.AssignedUser is null ? "Non assigné" : (task.AssignedUser.DisplayName ?? task.AssignedUser.Email ?? "—"))</td>
                     <td>
                         <button class="btn btn-sm btn-warning"
                                 @onclick="() => GoToEdit(task.Id)">

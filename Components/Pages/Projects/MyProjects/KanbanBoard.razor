@@ -161,7 +161,7 @@
 
 @code {
     [Parameter] public int ProjectId { get; set; }
-    [Parameter] public int MemberId { get; set; }
+    [Parameter] public string UserId { get; set; } = "";
     [Parameter] public EventCallback OnTaskStatusChanged { get; set; }
 
     private List<ProjectTask> _tasks = new();
@@ -181,7 +181,13 @@
 
     private async Task LoadTasks()
     {
-        _tasks = await MyProjectsService.GetTasksByMemberAndProjectAsync(MemberId, ProjectId);
+        if (string.IsNullOrEmpty(UserId))
+        {
+            _tasks = new();
+            return;
+        }
+
+        _tasks = await MyProjectsService.GetTasksByUserAndProjectAsync(UserId, ProjectId);
     }
 
     private void OnDragStart(ProjectTask task)
@@ -201,30 +207,30 @@
         StateHasChanged();
     }
 
-    private bool IsOverdue(ProjectTask task) =>
+    private static bool IsOverdue(ProjectTask task) =>
         task.Status != Models.TaskStatus.Done && task.DueDate < DateTime.Now;
 
-    private string GetColumnClass(Models.TaskStatus s) => s switch
+    private static string GetColumnClass(Models.TaskStatus s) => s switch
     {
-        Models.TaskStatus.Todo       => "col-todo",
+        Models.TaskStatus.Todo => "col-todo",
         Models.TaskStatus.InProgress => "col-inprog",
-        Models.TaskStatus.Done       => "col-done",
+        Models.TaskStatus.Done => "col-done",
         _ => ""
     };
 
-    private string GetColumnIcon(Models.TaskStatus s) => s switch
+    private static string GetColumnIcon(Models.TaskStatus s) => s switch
     {
-        Models.TaskStatus.Todo       => "📋",
+        Models.TaskStatus.Todo => "📋",
         Models.TaskStatus.InProgress => "🔄",
-        Models.TaskStatus.Done       => "✅",
+        Models.TaskStatus.Done => "✅",
         _ => ""
     };
 
-    private string GetColumnLabel(Models.TaskStatus s) => s switch
+    private static string GetColumnLabel(Models.TaskStatus s) => s switch
     {
-        Models.TaskStatus.Todo       => "À faire",
+        Models.TaskStatus.Todo => "À faire",
         Models.TaskStatus.InProgress => "En cours",
-        Models.TaskStatus.Done       => "Terminé",
+        Models.TaskStatus.Done => "Terminé",
         _ => s.ToString()
     };
 }
