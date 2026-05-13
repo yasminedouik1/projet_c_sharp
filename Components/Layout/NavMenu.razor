@@ -1,38 +1,87 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+@* Menu : AuthorizeView = affichage conditionnel (UX). La sécurité réelle = [Authorize] sur les pages + AuthorizeRouteView. *@
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="dashboard">ProjectManager</a> 
+        <AuthorizeView>
+            <Authorized Context="auth">
+                @if (auth.User.IsInRole("Admin"))
+                {
+                    <a class="navbar-brand" href="dashboard">ProjectManager</a>
+                }
+                else if (auth.User.IsInRole("User"))
+                {
+                    <a class="navbar-brand" href="my-projects">ProjectManager</a>
+                }
+                else
+                {
+                    <a class="navbar-brand" href="">ProjectManager</a>
+                }
+            </Authorized>
+            <NotAuthorized>
+                <a class="navbar-brand" href="login">ProjectManager</a>
+            </NotAuthorized>
+        </AuthorizeView>
     </div>
 </div>
 
 <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="dashboard">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Dashboard
-            </NavLink>
-        </div>
+    <nav class="nav flex-column py-2">
 
-<AuthorizeView Roles="Admin">
-    <Authorized>
-        <div class="nav-item px-3"> 
-            <NavLink class="nav-link" href="projects">
-                <span class="bi bi-kanban" aria-hidden="true"></span> Projets
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="members">
-                <span class="bi bi-people" aria-hidden="true"></span> Membres
-            </NavLink>
-        </div>
-    </Authorized>
-</AuthorizeView>
-        <div class="nav-item px-3">
-    <NavLink class="nav-link" href="my-projects">
-        <span class="bi bi-person-workspace" aria-hidden="true"></span> Mes Projets
-    </NavLink>
-</div>
+        @* ----- Visiteur : liens publics ----- *@
+        <AuthorizeView>
+            <NotAuthorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="login" Match="NavLinkMatch.All">
+                        <span class="bi bi-box-arrow-in-right" aria-hidden="true"></span> Connexion
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="register">
+                        <span class="bi bi-person-plus" aria-hidden="true"></span> Inscription
+                    </NavLink>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
+
+        @* ----- Mon espace : comptes métier (Identity « User ») — Mes projets via MyProjectsService ----- *@
+        <AuthorizeView Roles="User">
+            <Authorized>
+                <div class="px-3 pt-2 pb-1 mt-1">
+                    <span class="text-uppercase small text-white-50 fw-semibold">Mon espace</span>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="my-projects" Match="NavLinkMatch.Prefix">
+                        <span class="bi bi-kanban" aria-hidden="true"></span> Mes projets
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+
+        @* ----- Administration : Identity « Admin » — ProjectService + MemberService ----- *@
+        <AuthorizeView Roles="Admin">
+            <Authorized>
+                <div class="px-3 pt-3 pb-1 border-top border-secondary mt-2">
+                    <span class="text-uppercase small text-white-50 fw-semibold">Administration</span>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="dashboard" Match="NavLinkMatch.All">
+                        <span class="bi bi-speedometer2" aria-hidden="true"></span> Tableau de bord admin
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="members" Match="NavLinkMatch.Prefix">
+                        <span class="bi bi-people" aria-hidden="true"></span> Gestion des membres
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="projects" Match="NavLinkMatch.Prefix">
+                        <span class="bi bi-folder2-open" aria-hidden="true"></span> Gestion des projets
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+
     </nav>
 </div>
-

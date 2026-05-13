@@ -34,6 +34,12 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/login";
+    options.AccessDeniedPath = "/login";
+});
+
 builder.Services.AddCascadingAuthenticationState();
 
 // ====================== BUILD ======================
@@ -45,12 +51,26 @@ using (var scope = app.Services.CreateScope())
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
 
-    // Création des rôles
-    string[] roles = { "Admin", "Member" };
-    foreach (var role in roles)
+    // Rôles Identity : Admin (back-office), User (comptes « membres » de l'application)
+    foreach (var roleName in new[] { "Admin", "User" })
     {
-        if (!await roleManager.RoleExistsAsync(role))
-            await roleManager.CreateAsync(new IdentityRole(role));
+        if (!await roleManager.RoleExistsAsync(roleName))
+            await roleManager.CreateAsync(new IdentityRole(roleName));
+    }
+
+    // Ancien nom de rôle « Member » → « User » (mise à jour silencieuse des comptes existants)
+    if (await roleManager.RoleExistsAsync("Member"))
+    {
+        var memberRole = await roleManager.FindByNameAsync("Member");
+        foreach (var u in await userManager.GetUsersInRoleAsync("Member"))
+        {
+            await userManager.RemoveFromRoleAsync(u, "Member");
+            if (!await userManager.IsInRoleAsync(u, "User"))
+                await userManager.AddToRoleAsync(u, "User");
+        }
+
+        if (memberRole is not null)
+            await roleManager.DeleteAsync(memberRole);
     }
 
     // Création du compte Admin par défaut
@@ -109,7 +129,13 @@ app.MapPost("/api/auth/login", async (
     var result = await signInManager.PasswordSignInAsync(email, password, isPersistent: false, lockoutOnFailure: false);
 
     if (result.Succeeded)
-        return Results.Redirect("/myprojects");
+    {
+        var user = await signInManager.UserManager.FindByEmailAsync(email);
+        if (user is not null && await signInManager.UserManager.IsInRoleAsync(user, "Admin"))
+            return Results.Redirect("/dashboard");
+
+        return Results.Redirect("/my-projects");
+    }
 
     return Results.Redirect("/login?error=Invalid+credentials");
 }).DisableAntiforgery();
@@ -141,10 +167,10 @@ app.MapPost("/api/auth/register", async (
 
     if (result.Succeeded)
     {
-        await userManager.AddToRoleAsync(newUser, "Member");
+        await userManager.AddToRoleAsync(newUser, "User");
         await signInManager.SignInAsync(newUser, isPersistent: false);
 
-        return Results.Redirect("/myprojects");
+        return Results.Redirect("/my-projects");
     }
 
     var errors = string.Join(", ", result.Errors.Select(e => e.Description));

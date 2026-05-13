@@ -62,4 +62,12 @@ public async Task<int> GetProjectMemberCountAsync(int memberId)
         .Where(pm => pm.MemberId == memberId)
         .CountAsync();
 }
+public async Task<Member?> GetMemberByEmailAsync(string email)
+{
+    if (string.IsNullOrEmpty(email))
+        return null;
+
+    return await _db.Members
+        .FirstOrDefaultAsync(m => m.Email.ToLower() == email.ToLower());
+}
 }

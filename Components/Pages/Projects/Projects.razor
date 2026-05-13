@@ -1,0 +1,119 @@
+@page "/projects"
+@attribute [Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
+
+@inject IProjectService ProjectService
+@inject NavigationManager NavManager
+
+<PageTitle>Projets</PageTitle>
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
+    <div>
+        <h1 class="h2 mb-1">Gestion des projets</h1>
+        <p class="text-muted mb-0 small">
+            Vue globale réservée aux administrateurs. Service : <code>IProjectService</code>.
+        </p>
+    </div>
+</div>
+
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <button type="button" class="btn btn-primary" @onclick="GoToAdd">
+                    <span class="bi bi-folder-plus me-1" aria-hidden="true"></span>
+                    Nouveau projet
+                </button>
+            </div>
+        </div>
+
+        @if (_isLoading)
+        {
+            <p class="text-muted"><em>Chargement...</em></p>
+        }
+        else if (_projects.Count == 0)
+        {
+            <div class="alert alert-light border">Aucun projet trouvé.</div>
+        }
+        else
+        {
+            <div class="table-responsive card border-0 shadow-sm">
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Nom</th>
+                            <th scope="col">Date limite</th>
+                            <th scope="col">Statut</th>
+                            <th scope="col">Tâches</th>
+                            <th scope="col" class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var project in _projects)
+                        {
+                            <tr>
+                                <td class="align-middle">@project.Name</td>
+                                <td class="align-middle">@project.DueDate.ToString("dd/MM/yyyy")</td>
+                                <td class="align-middle">
+                                    <span class="badge @GetStatusBadge(project.Status)">
+                                        @project.Status
+                                    </span>
+                                </td>
+                                <td class="align-middle">@project.Tasks.Count</td>
+                                <td class="align-middle text-end text-nowrap">
+                                    <button type="button" class="btn btn-sm btn-outline-info me-1"
+                                            @onclick="() => GoToDetail(project.Id)">
+                                        Détail
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-warning me-1"
+                                            @onclick="() => GoToEdit(project.Id)">
+                                        Modifier
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                            @onclick="() => Delete(project.Id)">
+                                        Supprimer
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <div class="alert alert-warning">Accès réservé aux administrateurs.</div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private List<Project> _projects = new();
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _projects = await ProjectService.GetAllAsync();
+        _isLoading = false;
+    }
+
+    private void GoToAdd() => NavManager.NavigateTo("/projects/add");
+
+    private void GoToDetail(int id) => NavManager.NavigateTo($"/projects/{id}");
+
+    private void GoToEdit(int id) => NavManager.NavigateTo($"/projects/edit/{id}");
+
+    private async Task Delete(int id)
+    {
+        await ProjectService.DeleteAsync(id);
+        _projects = await ProjectService.GetAllAsync();
+    }
+
+    private static string GetStatusBadge(ProjectStatus status) => status switch
+    {
+        ProjectStatus.Active => "bg-success",
+        ProjectStatus.Completed => "bg-primary",
+        ProjectStatus.OnHold => "bg-warning text-dark",
+        ProjectStatus.Cancelled => "bg-danger",
+        _ => "bg-secondary"
+    };
+}

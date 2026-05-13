@@ -1,129 +1,72 @@
 @page "/my-projects"
-@using ProjectManager.Models
-@using ProjectManager.Services
+@attribute [Authorize(Roles = "User")]
+@rendermode InteractiveServer
+
+@using System.Security.Claims
+
 @inject IMyProjectsService MyProjectsService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
 
-<PageTitle>Mes Projets</PageTitle>
+<h3>Mes Projets</h3>
 
-<div class="container mt-4">
-
-    <h1>Mes Projets</h1>
-
-    <!-- Member Selector -->
-    <div class="mb-4">
-        <label class="form-label fw-bold">Sélectionnez un membre :</label>
-        <select class="form-select" @onchange="OnMemberSelected">
-            <option value="0">-- Choisir un membre --</option>
-            @foreach (var m in _members)
-            {
-                <option value="@m.Id">@m.FullName (@m.Role)</option>
-            }
-        </select>
+@if (projects == null)
+{
+    <p><em>Chargement des projets...</em></p>
+}
+else if (projects.Count == 0)
+{
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>
+        Pas de projets assignés pour le moment.
     </div>
-
-    @if (_selectedMember != null)
-    {
-        <h4>Projets de : <strong>@_selectedMember.FullName</strong></h4>
-
-        @if (_selectedProject == null)
+}
+else
+{
+    <div class="row">
+        @foreach (var project in projects)
         {
-            <!-- PROJECT LIST -->
-            <div class="row">
-                @foreach (var project in _projects)
-                {
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="project-list-card" @onclick="() => SelectProject(project)">
-                            <h5>@project.Name</h5>
-                            <p>@project.Description</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="badge bg-primary">@project.Status</span>
-                                <small class="text-muted">@project.Tasks.Count tâches</small>
-                            </div>
-                        </div>
-                    </div>
-                }
+            <div class="col-md-6 col-lg-4 mb-4">
+                <ProjectCard Project="project" 
+                             MemberId="currentMemberId" 
+                             OnTaskStatusChanged="RefreshProjects" />
             </div>
         }
-        else
-        {
-            <!-- PROJECT DETAIL + KANBAN -->
-            <div class="mb-3">
-                <button class="btn btn-outline-secondary" @onclick="BackToList">
-                    ← Retour à la liste des projets
-                </button>
-            </div>
-
-            <ProjectCard Project="_selectedProject" 
-                         MemberId="_selectedMember.Id" 
-                         OnTaskStatusChanged="OnTaskStatusChanged" />
-        }
-    }
-</div>
-
-<style>
-    .project-list-card {
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 1.5rem;
-        cursor: pointer;
-        transition: all 0.2s;
-        height: 100%;
-    }
-
-    .project-list-card:hover {
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        transform: translateY(-4px);
-        border-color: #6366f1;
-    }
-</style>
+    </div>
+}
 
 @code {
-    private List<Member> _members = new();
-    private List<Project> _projects = new();
-    private Member? _selectedMember;
-    private Project? _selectedProject;
+    private List<Project> projects = new();
+    private int currentMemberId = 0;
 
     protected override async Task OnInitializedAsync()
     {
-        _members = await MyProjectsService.GetAllMembersAsync();
+        await LoadMyProjects();
     }
 
-    private async Task OnMemberSelected(ChangeEventArgs e)
+    private async Task LoadMyProjects()
     {
-        if (int.TryParse(e.Value?.ToString(), out int memberId) && memberId > 0)
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var email = authState.User.FindFirst(ClaimTypes.Email)?.Value;
+
+        if (string.IsNullOrEmpty(email))
+            return;
+
+        var member = await MyProjectsService.GetMemberByEmailAsync(email);
+
+        if (member != null)
         {
-            _selectedMember = await MyProjectsService.GetMemberByIdAsync(memberId);
-            _projects = await MyProjectsService.GetProjectsByMemberAsync(memberId);
-            _selectedProject = null; // Reset detail view
+            currentMemberId = member.Id;
+            projects = await MyProjectsService.GetProjectsByMemberAsync(currentMemberId);
         }
-        else
+    }
+
+    private async Task RefreshProjects()
+    {
+        if (currentMemberId > 0)
         {
-            _selectedMember = null;
-            _projects.Clear();
-            _selectedProject = null;
-        }
-    }
-
-    private void SelectProject(Project project)
-    {
-        _selectedProject = project;
-        StateHasChanged();
-    }
-
-    private void BackToList()
-    {
-        _selectedProject = null;
-        StateHasChanged();
-    }
-
-    private async Task OnTaskStatusChanged()
-    {
-        // Refresh tasks if needed
-        if (_selectedProject != null && _selectedMember != null)
-        {
-            _projects = await MyProjectsService.GetProjectsByMemberAsync(_selectedMember.Id);
-            _selectedProject = _projects.FirstOrDefault(p => p.Id == _selectedProject.Id);
+            projects = await MyProjectsService.GetProjectsByMemberAsync(currentMemberId);
+            StateHasChanged();
         }
     }
 }

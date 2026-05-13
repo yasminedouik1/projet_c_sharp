@@ -1,7 +1,42 @@
 ﻿<CascadingAuthenticationState>
     <Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">
         <Found Context="routeData">
-            <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+            @* AuthorizeRouteView applique [Authorize] / rôles sur les pages @page (contrairement à RouteView seul). *@
+            <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+                <NotAuthorized>
+                    <LayoutView Layout="typeof(Layout.MainLayout)">
+                        <div class="container py-5" style="max-width: 36rem;">
+                            <AuthorizeView Context="routeAuth">
+                                <Authorized>
+                                    <div class="alert alert-danger shadow-sm">
+                                        <h2 class="h5 alert-heading">Accès refusé</h2>
+                                        <p class="mb-3">Votre compte ne permet pas d’ouvrir cette page.</p>
+                                        @if (routeAuth.User.IsInRole("Admin"))
+                                        {
+                                            <a class="btn btn-primary btn-sm" href="dashboard">Tableau de bord admin</a>
+                                        }
+                                        else if (routeAuth.User.IsInRole("User"))
+                                        {
+                                            <a class="btn btn-primary btn-sm" href="my-projects">Mes projets</a>
+                                        }
+                                        else
+                                        {
+                                            <a class="btn btn-primary btn-sm" href="">Accueil</a>
+                                        }
+                                    </div>
+                                </Authorized>
+                                <NotAuthorized>
+                                    <div class="alert alert-warning shadow-sm">
+                                        <h2 class="h5 alert-heading">Connexion requise</h2>
+                                        <p class="mb-3">Identifiez-vous pour accéder à cette ressource.</p>
+                                        <a class="btn btn-primary btn-sm" href="login">Se connecter</a>
+                                    </div>
+                                </NotAuthorized>
+                            </AuthorizeView>
+                        </div>
+                    </LayoutView>
+                </NotAuthorized>
+            </AuthorizeRouteView>
             <FocusOnNavigate RouteData="routeData" Selector="h1" />
         </Found>
     </Router>
