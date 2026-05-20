@@ -6,7 +6,7 @@
     @foreach (var status in _columns)
     {
         <div class="kanban-column @GetColumnClass(status)"
-             @ondragover:preventDefault="true"
+             @ondragover:preventDefault="@(!ReadOnly)"
              @ondrop="() => OnDrop(status)">
 
             <div class="kanban-col-header">
@@ -19,7 +19,7 @@
                 @foreach (var task in _tasks.Where(t => t.Status == status))
                 {
                     <div class="kanban-card @(IsOverdue(task) ? "overdue" : "")"
-                         draggable="true"
+                         draggable="@(!ReadOnly)"
                          @ondragstart="() => OnDragStart(task)">
 
                         <div class="kc-title">@task.Title</div>
@@ -162,6 +162,7 @@
 @code {
     [Parameter] public int ProjectId { get; set; }
     [Parameter] public int MemberId { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
     [Parameter] public EventCallback OnTaskStatusChanged { get; set; }
 
     private List<ProjectTask> _tasks = new();
@@ -186,11 +187,13 @@
 
     private void OnDragStart(ProjectTask task)
     {
+        if (ReadOnly) return;
         _draggedTask = task;
     }
 
     private async Task OnDrop(Models.TaskStatus targetStatus)
     {
+        if (ReadOnly) return;
         if (_draggedTask is null || _draggedTask.Status == targetStatus) return;
 
         await MyProjectsService.UpdateTaskStatusAsync(_draggedTask.Id, targetStatus);

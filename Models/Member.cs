@@ -17,6 +17,8 @@ public class Member
     [StringLength(50)]
     public string? Role { get; set; }
 
+    public string PasswordHash { get; set; } = string.Empty;
+
     public ICollection<ProjectTask> Tasks { get; set; } = new List<ProjectTask>();
     public ICollection<ProjectMember> ProjectMemberships { get; set; } = new List<ProjectMember>();
 }

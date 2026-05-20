@@ -1,0 +1,41 @@
+@page "/register"
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-4 card shadow-sm p-4">
+        <h3 class="text-center mb-4">Inscription</h3>
+
+        @if (!string.IsNullOrEmpty(Error))
+        {
+            <div class="alert alert-danger">@Error</div>
+        }
+
+        <form method="post" action="/api/auth/register" data-enhance="false">
+            <div class="mb-3">
+                <label>Nom complet</label>
+                <input type="text" name="fullName" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label>Email</label>
+                <input type="email" name="email" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label>Mot de passe</label>
+                <input type="password" name="password" class="form-control" required minlength="6" />
+            </div>
+            <div class="mb-3">
+                <label>Confirmer le mot de passe</label>
+                <input type="password" name="confirmPassword" class="form-control" required minlength="6" />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">S'inscrire</button>
+        </form>
+
+        <p class="text-center mt-3 mb-0">
+            Déjà un compte ? <a href="/login">Se connecter</a>
+        </p>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public string? Error { get; set; }
+}

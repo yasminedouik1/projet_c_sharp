@@ -33,6 +33,9 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 .AddDefaultTokenProviders();
 
 builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddAuthorization();
+builder.Services.AddScoped<IPasswordHasher<Member>, PasswordHasher<Member>>();
 
 var app = builder.Build();
 // Servir les fichiers statiques de wwwroot (existant)
@@ -43,6 +46,9 @@ using (var scope = app.Services.CreateScope())
 
     if (!await roleManager.RoleExistsAsync("Admin"))
         await roleManager.CreateAsync(new IdentityRole("Admin"));
+
+    if (!await roleManager.RoleExistsAsync("Member"))
+        await roleManager.CreateAsync(new IdentityRole("Member"));
 
     if (await userManager.FindByEmailAsync("admin@data.com") == null)
     {
@@ -66,7 +72,7 @@ app.UseStaticFiles(new StaticFileOptions
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    context.Database.EnsureCreated();
+    context.Database.Migrate();
 
     if (!context.Members.Any())
     {
@@ -95,6 +101,9 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseAntiforgery();
 
 app.MapStaticAssets();
@@ -111,8 +120,45 @@ app.MapPost("/api/auth/login", async (
     
     if (result.Succeeded) return Results.Redirect("/dashboard");
     
-    return Results.Redirect("/login?error=Invalid+credentials");
-}).DisableAntiforgery(); 
+    return Results.Redirect("/login?error=Identifiants+invalides");
+}).DisableAntiforgery();
+
+app.MapPost("/api/auth/register", async (
+    [FromServices] UserManager<IdentityUser> userManager,
+    [FromServices] SignInManager<IdentityUser> signInManager,
+    [FromServices] AppDbContext context,
+    [FromServices] IPasswordHasher<Member> passwordHasher,
+    [FromForm] string fullName,
+    [FromForm] string email,
+    [FromForm] string password,
+    [FromForm] string confirmPassword) =>
+{
+    if (password != confirmPassword)
+        return Results.Redirect("/register?error=Les+mots+de+passe+ne+correspondent+pas");
+
+    if (await userManager.FindByEmailAsync(email) != null)
+        return Results.Redirect("/register?error=Email+deja+utilise");
+
+    var user = new IdentityUser { UserName = email, Email = email, EmailConfirmed = true };
+    var result = await userManager.CreateAsync(user, password);
+
+    if (!result.Succeeded)
+        return Results.Redirect("/register?error=Inscription+impossible");
+
+    await userManager.AddToRoleAsync(user, "Member");
+
+    context.Members.Add(new Member
+    {
+        FullName = fullName.Trim(),
+        Email = email.Trim(),
+        Role = "Membre",
+        PasswordHash = passwordHasher.HashPassword(new Member(), password)
+    });
+    await context.SaveChangesAsync();
+
+    await signInManager.SignInAsync(user, isPersistent: false);
+    return Results.Redirect("/dashboard");
+}).DisableAntiforgery();
 
 app.MapPost("/api/auth/logout", async ([FromServices] SignInManager<IdentityUser> signInManager) =>
 {

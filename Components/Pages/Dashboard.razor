@@ -1,4 +1,5 @@
 @page "/dashboard"
+@attribute [Authorize(Roles = "Admin,Member")]
 @rendermode InteractiveServer
 
 @using ProjectManager.Models
@@ -17,13 +18,17 @@
     Nous sommes le : <strong>@DateTime.Now.ToString("dd MMMM yyyy")</strong>
 </div>
 
-<button class="btn btn-primary mb-3" @onclick="RefreshDashboard">
-    <span class="oi oi-reload"></span> Actualiser le tableau de bord
-</button>
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        <button class="btn btn-primary mb-3" @onclick="RefreshDashboard">
+            <span class="oi oi-reload"></span> Actualiser le tableau de bord
+        </button>
 
-<div class="mt-3 card card-body">
-    Logs : @LastLog
-</div>
+        <div class="mt-3 card card-body">
+            Logs : @LastLog
+        </div>
+    </Authorized>
+</AuthorizeView>
 
 @if (_isLoading)
 {

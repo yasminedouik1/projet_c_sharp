@@ -1,33 +1,31 @@
 @page "/my-projects"
+@attribute [Authorize(Roles = "Member")]
+@rendermode InteractiveServer
 @using ProjectManager.Models
 @using ProjectManager.Services
+@using System.Security.Claims
 @inject IMyProjectsService MyProjectsService
+@inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>Mes Projets</PageTitle>
 
 <div class="container mt-4">
-
     <h1>Mes Projets</h1>
 
-    <!-- Member Selector -->
-    <div class="mb-4">
-        <label class="form-label fw-bold">Sélectionnez un membre :</label>
-        <select class="form-select" @onchange="OnMemberSelected">
-            <option value="0">-- Choisir un membre --</option>
-            @foreach (var m in _members)
-            {
-                <option value="@m.Id">@m.FullName (@m.Role)</option>
-            }
-        </select>
-    </div>
-
-    @if (_selectedMember != null)
+    @if (_selectedMember == null)
+    {
+        <p><em>Chargement...</em></p>
+    }
+    else
     {
         <h4>Projets de : <strong>@_selectedMember.FullName</strong></h4>
 
-        @if (_selectedProject == null)
+        @if (_projects.Count == 0)
         {
-            <!-- PROJECT LIST -->
+            <p class="text-muted">Aucun projet assigné pour le moment.</p>
+        }
+        else if (_selectedProject == null)
+        {
             <div class="row">
                 @foreach (var project in _projects)
                 {
@@ -46,16 +44,15 @@
         }
         else
         {
-            <!-- PROJECT DETAIL + KANBAN -->
             <div class="mb-3">
                 <button class="btn btn-outline-secondary" @onclick="BackToList">
                     ← Retour à la liste des projets
                 </button>
             </div>
 
-            <ProjectCard Project="_selectedProject" 
-                         MemberId="_selectedMember.Id" 
-                         OnTaskStatusChanged="OnTaskStatusChanged" />
+            <ProjectCard Project="_selectedProject"
+                         MemberId="_selectedMember.Id"
+                         ReadOnly="true" />
         }
     }
 </div>
@@ -79,51 +76,32 @@
 </style>
 
 @code {
-    private List<Member> _members = new();
     private List<Project> _projects = new();
     private Member? _selectedMember;
     private Project? _selectedProject;
 
     protected override async Task OnInitializedAsync()
     {
-        _members = await MyProjectsService.GetAllMembersAsync();
-    }
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var email = authState.User.FindFirst(ClaimTypes.Email)?.Value
+            ?? authState.User.Identity?.Name;
 
-    private async Task OnMemberSelected(ChangeEventArgs e)
-    {
-        if (int.TryParse(e.Value?.ToString(), out int memberId) && memberId > 0)
-        {
-            _selectedMember = await MyProjectsService.GetMemberByIdAsync(memberId);
-            _projects = await MyProjectsService.GetProjectsByMemberAsync(memberId);
-            _selectedProject = null; // Reset detail view
-        }
-        else
-        {
-            _selectedMember = null;
-            _projects.Clear();
-            _selectedProject = null;
-        }
+        if (string.IsNullOrEmpty(email)) return;
+
+        _selectedMember = (await MyProjectsService.GetAllMembersAsync())
+            .FirstOrDefault(m => m.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
+
+        if (_selectedMember != null)
+            _projects = await MyProjectsService.GetProjectsByMemberAsync(_selectedMember.Id);
     }
 
     private void SelectProject(Project project)
     {
         _selectedProject = project;
-        StateHasChanged();
     }
 
     private void BackToList()
     {
         _selectedProject = null;
-        StateHasChanged();
-    }
-
-    private async Task OnTaskStatusChanged()
-    {
-        // Refresh tasks if needed
-        if (_selectedProject != null && _selectedMember != null)
-        {
-            _projects = await MyProjectsService.GetProjectsByMemberAsync(_selectedMember.Id);
-            _selectedProject = _projects.FirstOrDefault(p => p.Id == _selectedProject.Id);
-        }
     }
 }
