@@ -23,7 +23,7 @@
 }
 
 .btn-warning:hover {
-    background-color: #621285;
+    background-color: var(--primary-dark);
     transform: translateY(-2px);
     box-shadow: var(--shadow-sm);
 }
