@@ -38,7 +38,6 @@
                 <ValidationMessage For="() => _task.DueDate" />
             </div>
 
-            <!-- Statut supprimé du formulaire (fixé à Todo) -->
         </div>
 
         <div class="mb-3">
@@ -65,7 +64,7 @@
     private ProjectTask _task = new() 
     { 
         DueDate = DateTime.Now.AddDays(7),
-        Status = TaskStatusEnum.Todo,   // Statut fixé par défaut
+        Status = TaskStatusEnum.Todo,   // Statut todo par defaut
         ProjectId = 0
     };
 
@@ -79,7 +78,6 @@
 
     private async Task Save()
     {
-        // On force à nouveau Todo au cas où
         _task.Status = TaskStatusEnum.Todo;
 
         await TaskService.AddAsync(_task);

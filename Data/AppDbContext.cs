@@ -18,7 +18,7 @@ public class AppDbContext : IdentityDbContext<IdentityUser>
     {
                 base.OnModelCreating(modelBuilder);
 
-        // Clé composite pour la table de jonction
+        // Clé composite 
         modelBuilder.Entity<ProjectMember>()
             .HasKey(pm => new { pm.ProjectId, pm.MemberId });
     }

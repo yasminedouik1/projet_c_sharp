@@ -1,10 +1,6 @@
-/* Base */
-@import 'base/_reset.css';
 @import 'base/_variables.css';
-
-/* Components */
-@import 'components/_buttons.css';
-
-/* Layouts */
-@import 'layouts/_main-layout.css';
+@import 'base/_reset.css';
 @import 'layouts/_sidebar.css';
+@import 'layouts/_main-layout.css';
+@import 'components/_buttons.css';
+@import 'components/_forms.css';

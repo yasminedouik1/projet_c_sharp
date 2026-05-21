@@ -12,7 +12,7 @@
     <h1>Test Base de données - ProjectMembers</h1>
 
     <button class="btn btn-primary mb-3" @onclick="CheckData">
-        🔄 Vérifier les données dans ProjectMembers
+         Vérifier les données dans ProjectMembers
     </button>
 
     <hr />
@@ -35,12 +35,12 @@
                 .Include(pm => pm.Member)
                 .ToListAsync();
 
-            result = $"✅ Membres totaux : {members.Count}\n";
-            result += $"📊 Liaisons dans ProjectMembers : {projectMembers.Count}\n\n";
+            result = $" Membres totaux : {members.Count}\n";
+            result += $" Liaisons dans ProjectMembers : {projectMembers.Count}\n\n";
 
             if (projectMembers.Count == 0)
             {
-                result += "❌ AUCUNE donnée trouvée dans la table ProjectMembers !\n\n";
+                result += " AUCUNE donnée trouvée dans la table ProjectMembers !\n\n";
                 result += "Tu dois d'abord affecter des membres à des projets.";
             }
             else
@@ -53,7 +53,7 @@
         }
         catch (Exception ex)
         {
-            result = $"❌ ERREUR : {ex.Message}";
+            result = $" ERREUR : {ex.Message}";
         }
 
         StateHasChanged();

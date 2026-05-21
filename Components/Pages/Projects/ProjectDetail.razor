@@ -52,10 +52,8 @@ else
         </div>
     </div>
 
-    <!-- ====================== MEMBRES ====================== -->
     <h4>Membres du projet (@_project.Members.Count)</h4>
 
-    <!-- Ajouter un membre -->
     <div class="mb-3">
         <h6>Ajouter un membre</h6>
         <div class="d-flex gap-2">
@@ -66,7 +64,6 @@ else
                     <option value="@m.Id">@m.FullName</option>
                 }
             </select>
-           <!-- NOUVEAU CODE - Bouton qui s'active correctement -->
 <button class="btn btn-success" 
         @onclick="AddMember" 
         disabled="@(_selectedMemberId == 0)">
@@ -95,7 +92,6 @@ else
         <p class="text-muted">Aucun membre assigné à ce projet.</p>
     }
 
-    <!-- ====================== TÂCHES ====================== -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4>Tâches (@_project.Tasks.Count)</h4>
         <button class="btn btn-primary" @onclick="GoToAddTask">
@@ -170,7 +166,6 @@ else
         _isLoading = false;
     }
 
-    // ================== Gestion Membres ==================
     private async Task AddMember()
     {
         if (_selectedMemberId == 0) return;
@@ -189,7 +184,6 @@ else
         await LoadData();
     }
 
-    // ================== Gestion Tâches ==================
     private bool IsOverdue(ProjectTask task) =>
         task.DueDate < DateTime.Now && task.Status != Models.TaskStatus.Done;
 
