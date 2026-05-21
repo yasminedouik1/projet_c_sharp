@@ -4,7 +4,7 @@
 <div class="project-card">
     <div class="pc-header">
         <div class="pc-info">
-            <h2 class="pc-name">📁 @Project.Name</h2>
+            <h2 class="pc-name">@Project.Name</h2>
             @if (!string.IsNullOrEmpty(Project.Description))
             {
                 <p class="pc-desc">@Project.Description</p>
@@ -12,7 +12,7 @@
         </div>
         <div class="pc-meta">
             <span class="pc-status @GetStatusClass(Project.Status)">@Project.Status</span>
-            <span class="pc-date">📅 @Project.DueDate.ToString("dd/MM/yyyy")</span>
+            <span class="pc-date"> @Project.DueDate.ToString("dd/MM/yyyy")</span>
         </div>
     </div>
 
