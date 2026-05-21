@@ -405,3 +405,4 @@ C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\ref\ProjectMan
 C:\Users\GHADA\Desktop\Projet c#\projet_c_sharp\obj\Debug\net10.0\compressed\lqrv2vokoi-{0}-rbd87d23jn-rbd87d23jn.gz
 C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\compressed\lqrv2vokoi-{0}-rbd87d23jn-rbd87d23jn.gz
 C:\Users\yasmi\Desktop\projet c#\ProjectManager\bin\Debug\net10.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
+C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\compressed\mihlh5bqef-{0}-wlspsgxgtk-wlspsgxgtk.gz

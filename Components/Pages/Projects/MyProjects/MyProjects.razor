@@ -52,7 +52,7 @@
 
             <ProjectCard Project="_selectedProject"
                          MemberId="_selectedMember.Id"
-                         ReadOnly="true" />
+                         OnTaskStatusChanged="OnTaskStatusChanged" />
         }
     }
 </div>
@@ -103,5 +103,14 @@
     private void BackToList()
     {
         _selectedProject = null;
+    }
+
+    private async Task OnTaskStatusChanged()
+    {
+        if (_selectedProject != null && _selectedMember != null)
+        {
+            _projects = await MyProjectsService.GetProjectsByMemberAsync(_selectedMember.Id);
+            _selectedProject = _projects.FirstOrDefault(p => p.Id == _selectedProject.Id);
+        }
     }
 }

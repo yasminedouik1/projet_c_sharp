@@ -36,15 +36,6 @@
                 <InputDate class="form-control" @bind-Value="_task.DueDate" />
                 <ValidationMessage For="() => _task.DueDate" />
             </div>
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Statut</label>
-                <InputSelect class="form-select" @bind-Value="_task.Status">
-                    @foreach (var status in Enum.GetValues<TaskStatusEnum>())
-                    {
-                        <option value="@status">@GetStatusLabel(status)</option>
-                    }
-                </InputSelect>
-            </div>
         </div>
 
         <div class="mb-3">
