@@ -45,7 +45,6 @@ public async Task<List<Project>> GetProjectsByMemberAsync(int memberId)
             .ToListAsync();
     }
 
-    // Correction ici : utilisation de Models.TaskStatus pour correspondre à l'interface
     public async Task UpdateTaskStatusAsync(int taskId, Models.TaskStatus newStatus)
     {
         var task = await _db.Tasks.FindAsync(taskId);
@@ -55,7 +54,6 @@ public async Task<List<Project>> GetProjectsByMemberAsync(int memberId)
             await _db.SaveChangesAsync();
         }
     }
-    // Ajoute cette méthode pour debug
 public async Task<int> GetProjectMemberCountAsync(int memberId)
 {
     return await _db.ProjectMembers

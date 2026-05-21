@@ -85,7 +85,6 @@ public class MemberService : IMemberService
 
 public async Task AddMemberToProjectAsync(int projectId, int memberId)
 {
-    // Vérifier si la relation existe déjà
     var exists = await _context.ProjectMembers
         .AnyAsync(pm => pm.ProjectId == projectId && pm.MemberId == memberId);
 

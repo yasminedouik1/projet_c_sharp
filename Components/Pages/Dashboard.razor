@@ -36,7 +36,7 @@
 }
 else
 {
-    <!-- KPIs -->
+    <!-- kpis -->
     <div class="row mt-4">
         <div class="col-md-3">
             <div class="card text-center p-3">
@@ -64,7 +64,7 @@ else
         </div>
     </div>
 
-    <!-- ====================== SANTÉ DES PROJETS ====================== -->
+    <!-- sante des projets -->
     <h4 class="mt-5">Santé des projets</h4>
 
     <div class="row mb-3">
@@ -113,7 +113,7 @@ else
         </tbody>
     </table>
 
-    <!-- ====================== PERFORMANCE DES MEMBRES ====================== -->
+    <!-- performances des membres -->
     <h4 class="mt-5">Performance des membres</h4>
 
     <div class="mb-3">
@@ -196,7 +196,7 @@ else
         _totalCompleted = projects.Sum(p => p.Tasks.Count(t => t.Status == Models.TaskStatus.Done));
         _totalOverdue = projects.Sum(p => p.Tasks.Count(t => t.DueDate < DateTime.Now && t.Status != Models.TaskStatus.Done));
 
-        // Chargement des scores projets
+        // Chargement des scores 
         _projectScores.Clear();
         foreach (var project in projects)
         {
@@ -237,7 +237,7 @@ else
         }
     }
 
-    // ================== FILTRES ==================
+    // filtres
 
     private List<ProjectScoreViewModel> FilteredProjectScores =>
         string.IsNullOrWhiteSpace(_projectSearchText)
@@ -279,7 +279,6 @@ else
         await LoadDashboardData();
     }
 
-    // Méthodes existantes (GetHealthColor, GetHealthLabel, etc.)
     private string GetHealthColor(double score) => score switch
     {
         > 75 => "bg-success",
@@ -300,7 +299,6 @@ else
     private string GetMemberLabel(double rate, int overdue) =>
         overdue > 2 ? "En difficulté" : rate >= 70 ? "Performant" : "À surveiller";
 
-    // ViewModels
     protected class ProjectScoreViewModel
     {
         public string ProjectName { get; set; } = "";
