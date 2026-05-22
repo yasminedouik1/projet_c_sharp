@@ -389,8 +389,6 @@ C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\compressed\uiy
 C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\compressed\rc6s3ayqtr-{0}-abdmv1u4y3-abdmv1u4y3.gz
 C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\compressed\i3jato3unq-{0}-2i0r6wwb69-2i0r6wwb69.gz
 C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\compressed\brqxd01zkw-{0}-iz83ucvm53-iz83ucvm53.gz
-C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\compressed\k3ner0ylyv-{0}-9p06baehvv-9p06baehvv.gz
-C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\compressed\uw31bqh8fa-{0}-9p06baehvv-9p06baehvv.gz
 C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\staticwebassets.build.json
 C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\staticwebassets.build.json.cache
 C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\staticwebassets.development.json
@@ -403,8 +401,10 @@ C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\ProjectManager
 C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\ProjectManager.genruntimeconfig.cache
 C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\ref\ProjectManager.dll
 C:\Users\GHADA\Desktop\Projet c#\projet_c_sharp\obj\Debug\net10.0\compressed\lqrv2vokoi-{0}-rbd87d23jn-rbd87d23jn.gz
-C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\compressed\lqrv2vokoi-{0}-rbd87d23jn-rbd87d23jn.gz
 C:\Users\yasmi\Desktop\projet c#\ProjectManager\bin\Debug\net10.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
 C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\compressed\mihlh5bqef-{0}-wlspsgxgtk-wlspsgxgtk.gz
 C:\Users\GHADA\Desktop\Projet c#\projet_c_sharp\bin\Debug\net10.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
 C:\Users\GHADA\Desktop\Projet c#\projet_c_sharp\obj\Debug\net10.0\compressed\mihlh5bqef-{0}-wlspsgxgtk-wlspsgxgtk.gz
+C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\compressed\lqrv2vokoi-{0}-isr7dx2tke-isr7dx2tke.gz
+C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\compressed\k3ner0ylyv-{0}-975udcoc0v-975udcoc0v.gz
+C:\Users\yasmi\Desktop\projet c#\ProjectManager\obj\Debug\net10.0\compressed\uw31bqh8fa-{0}-975udcoc0v-975udcoc0v.gz
