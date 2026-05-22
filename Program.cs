@@ -123,40 +123,55 @@ app.MapPost("/api/auth/login", async (
     return Results.Redirect("/login?error=Identifiants+invalides");
 }).DisableAntiforgery();
 
+
 app.MapPost("/api/auth/register", async (
     [FromServices] UserManager<IdentityUser> userManager,
     [FromServices] SignInManager<IdentityUser> signInManager,
     [FromServices] AppDbContext context,
-    [FromServices] IPasswordHasher<Member> passwordHasher,
-    [FromForm] string fullName,
-    [FromForm] string email,
-    [FromForm] string password,
-    [FromForm] string confirmPassword) =>
+    [FromForm] RegisterModel model) =>
 {
-    if (password != confirmPassword)
+    if (string.IsNullOrWhiteSpace(model.FullName))
+        return Results.Redirect("/register?error=Le+nom+complet+est+obligatoire");
+
+    if (string.IsNullOrWhiteSpace(model.Email) || !model.Email.Contains("@"))
+        return Results.Redirect("/register?error=Email+invalide");
+
+    if (string.IsNullOrWhiteSpace(model.Password) || model.Password.Length < 6)
+        return Results.Redirect("/register?error=Le+mot+de+passe+doit+contenir+au+moins+6+caracteres");
+
+    if (model.Password != model.ConfirmPassword)
         return Results.Redirect("/register?error=Les+mots+de+passe+ne+correspondent+pas");
 
-    if (await userManager.FindByEmailAsync(email) != null)
+    if (await userManager.FindByEmailAsync(model.Email) != null)
         return Results.Redirect("/register?error=Email+deja+utilise");
 
-    var user = new IdentityUser { UserName = email, Email = email, EmailConfirmed = true };
-    var result = await userManager.CreateAsync(user, password);
+    var identityUser = new IdentityUser
+    {
+        UserName = model.Email,
+        Email = model.Email,
+        EmailConfirmed = true
+    };
+
+    var result = await userManager.CreateAsync(identityUser, model.Password);
 
     if (!result.Succeeded)
-        return Results.Redirect("/register?error=Inscription+impossible");
+    {
+        var error = result.Errors.FirstOrDefault()?.Description ?? "Inscription+impossible";
+        return Results.Redirect($"/register?error={Uri.EscapeDataString(error)}");
+    }
 
-    await userManager.AddToRoleAsync(user, "Member");
+    await userManager.AddToRoleAsync(identityUser, "Member");
 
     context.Members.Add(new Member
     {
-        FullName = fullName.Trim(),
-        Email = email.Trim(),
-        Role = "Membre",
-        PasswordHash = passwordHasher.HashPassword(new Member(), password)
+        FullName = model.FullName.Trim(),
+        Email    = model.Email.Trim(),
+        Role     = "Membre",
+        PasswordHash = ""
     });
-    await context.SaveChangesAsync();
 
-    await signInManager.SignInAsync(user, isPersistent: false);
+    await context.SaveChangesAsync();
+    await signInManager.SignInAsync(identityUser, isPersistent: false);
     return Results.Redirect("/dashboard");
 }).DisableAntiforgery();
 
